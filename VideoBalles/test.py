@@ -1,13 +1,37 @@
 import pygame
 import sys
+import os
+
+class Balle:
+    def __init__(self, x, y, radius, color):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.color = color
+
+    def draw(self, surface):
+        pygame.draw.circle(surface, self.color, (self.x, self.y), self.radius)
+
+
+
+# Empêche Windows/macOS de faire une mise à l'échelle DPI automatique
+os.environ['SDL_VIDEO_ALLOW_HIGHDPI'] = '0'  
+os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'  # Centrer la fenêtre
 
 pygame.init()
-# Ecran de 1080x1920 (portrait)
-screen = pygame.display.set_mode((1080, 1920))
-screen.fill((0, 0, 0))
 
-pygame.draw.circle(screen, (255, 0, 0), (540, 960), 40)  # Cercle rouge au centre
-pygame.draw.rect(screen, (0, 255, 0), (100, 100, 200, 100))  # Rectangle vert
+#Calcul taille fenetre
+info = pygame.display.Info()
+screen_width, screen_height= info.current_w, info.current_h
+ratio = 9 / 16
+
+width = int(screen_height * ratio)
+height = screen_height
+
+
+# Ecran de en 16/9 (portrait)
+screen = pygame.display.set_mode((width, height))
+screen.fill((0, 0, 0))
 
 pygame.display.flip()
 
