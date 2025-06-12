@@ -64,3 +64,4 @@ def create_video_from_images(folder_path, output_path="output_video.mp4", fps=60
     
     print(f"Vidéo enregistrée : {output_path}")
     return True
+
