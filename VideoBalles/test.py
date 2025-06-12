@@ -41,11 +41,11 @@ partie = Partie(width, height, bg=(0, 0, 0), vitesse_max_balle=vitesse_max)
 
 #Ajout des balles
 partie.addBalle(width // 2, height // 2, 20, (255, 0, 0))
-partie.addArc((width // 2, height // 2), 200, 0, 300, (255, 255, 255))
-partie.addArc((width // 2, height // 2), 216, 0, 300, (255, 255, 255))
-partie.addArc((width // 2, height // 2), 232, 0, 300, (255, 255, 255))
-partie.addArc((width // 2, height // 2), 248, 0, 300, (255, 255, 255))
-partie.addArc((width // 2, height // 2), 264, 0, 300, (255, 255, 255))
+from random import randint
+for i in range (1000) :
+    angle2 = randint(0, 360)
+    angle=(angle2+60)%360
+    partie.addArc((width // 2, height // 2), 200 + i*16, angle, angle2 , (255, 255, 255))
 
 #Boucle des frames
 print("Création des images :")
@@ -55,11 +55,12 @@ for frame in range(total_frame):
             pygame.quit()
             sys.exit()
 
-    partie.setPartie(centre)
+    isRebond=partie.setPartie(centre)
+    
     partie.Afficher()
 
     if fichier_midi != "":
-        if partie.isRebond():
+        if isRebond:
             midi_controller.play_next_note()
 
     screen = partie.makeScreenshot(frame)

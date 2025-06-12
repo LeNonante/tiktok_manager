@@ -5,7 +5,7 @@ import mido
 from collections import deque
 
 class Partie:
-    def __init__(self, width, height, bg=(0, 0, 0), vitesse_max_balle=10.0, angle_rotation_arc=1, reduction_arc=0.1, limite_rayon_arc=110):
+    def __init__(self, width, height, bg=(0, 0, 0), vitesse_max_balle=10.0, angle_rotation_arc=0.2, reduction_arc=0.1, limite_rayon_arc=110):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -60,28 +60,45 @@ class Partie:
         self.screen.fill(self.bg)
         self.rayon_premier_arc = self.liste_arcs[0].rayon if self.liste_arcs else None
 
-        for b in self.liste_balles:
-            b.update_position(centre, self.vitesse_max_balle, self.rayon_premier_arc)
+        # Stocker les arcs à supprimer
+        arcs_to_remove = []
+
+        for i in range(len(self.liste_balles)):
+            b=self.liste_balles[i]
+            if i==0 :
+                rebond, arc_touche = b.update_position(centre, self.vitesse_max_balle, self.liste_arcs)
+                # Si un arc a été touché, le marquer pour suppression
+                if arc_touche is not None:
+                    arcs_to_remove.append(arc_touche)
+            else:
+                b.update_position(centre, self.vitesse_max_balle, self.rayon_premier_arc)
             b.draw(self.screen)
+
+        # Supprimer les arcs touchés
+        for arc in arcs_to_remove:
+            if arc in self.liste_arcs:
+                self.liste_arcs.remove(arc)
         
         for arc in self.liste_arcs:
-            
             arc.tourner(self.angle_rotation_arc)
             if self.rayon_premier_arc is not None:
                 if self.rayon_premier_arc > self.limite_rayon_arc :
                     arc.reduire_rayon(self.reduction_arc)
-            arc.draw(self.screen)
+            if arc.rayon <= 232:
+                arc.draw(self.screen)
+        
+        return rebond
 
-    def isRebond(self):
-        """
-        Vérifie si une balle a rebondi contre le bord de l'écran.
-        Retourne True si une balle a rebondi, sinon False.
-        """
-        self.rayon_premier_arc = self.liste_arcs[0].rayon if self.liste_arcs else None
-        for b in self.liste_balles:
-            if b.is_Rebond(self.centre, self.rayon_premier_arc):
-                return True
-        return False
+    # def isRebond(self):
+    #     """
+    #     Vérifie si une balle a rebondi contre le bord de l'écran.
+    #     Retourne True si une balle a rebondi, sinon False.
+    #     """
+    #     self.rayon_premier_arc = self.liste_arcs[0].rayon if self.liste_arcs else None
+    #     for b in self.liste_balles:
+    #         if b.is_Rebond(self.centre, self.rayon_premier_arc):
+    #             return True
+    #     return False
 
     def Afficher(self):
         """
@@ -114,6 +131,7 @@ class Balle:
         self.trainee_length = trainee_length  # Nombre de positions à garder en mémoire
         self.positions_precedentes = deque(maxlen=trainee_length)
         self.positions_precedentes.append(self.position.copy())
+        self.f=0
 
     def draw(self, surface):
         """
@@ -123,6 +141,7 @@ class Balle:
         self.draw_trainee(surface)
         pygame.draw.circle(surface, self.color, self.position, self.radius)
         pygame.draw.circle(surface, (0,0,0), self.position, self.radius-5)
+        self.f+=1
 
     def draw_trainee(self, surface):
         """
@@ -159,31 +178,72 @@ class Balle:
             self.vitesse = (self.vitesse / speed) * vitesse_max_balle
         print(self.vitesse)
 
-    def is_Rebond(self, centre, radius_cercle):
-        direction=self.position-centre
-        distance= np.linalg.norm(direction)
-        if distance > radius_cercle - self.radius:
-            if distance!=0:
-                return True
-        return False
-    
-    def update_position(self, centre, vitesse_max_balle, rayon_cercle):
-        """
-        Met à jour la position de la balle en fonction de sa vitesse et de la position du centre.
-        """
-        self.update_vitesse(vitesse_max_balle)
-        direction=self.position-centre
-        distance= np.linalg.norm(direction)
-        if distance > rayon_cercle - self.radius:
-            if distance!=0:
-                direction_normale = direction / distance
-                self.vitesse = self.vitesse - 2 * np.dot(self.vitesse, direction_normale) * direction_normale
-                # Décaler la balle de 2 pixels vers le centre pour éviter de rester collée au bord
-                self.position = centre + direction_normale * (rayon_cercle - self.radius - 2)
+    def est_dans_trou_arc(self, centre, arc):
 
+        """
+        Vérifie si la balle est dans le "trou" de l'arc (pas sur la partie solide)
+        """
+        # Calculer l'angle de la position de la balle par rapport au centre
+        direction = self.position - centre
+        angle_balle = np.degrees(np.arctan2(-direction[1], direction[0])) #je mets - car pygame à 0 en bas et nunpy en haut
+        
+        # Normaliser l'angle entre 0 et 360
+        if angle_balle < 0:
+            angle_balle += 360
+            
+        # Normaliser les angles de l'arc
+        angle_debut_norm = arc.angle_debut % 360
+        angle_fin_norm = arc.angle_fin % 360
+        
+        # Vérifier si l'angle de la balle est sur la partie SOLIDE de l'arc
+        # La partie solide est ENTRE angle_debut et angle_fin
+        is_on_solid_part = False
+        
+        if angle_debut_norm <= angle_fin_norm:
+            # Cas normal (pas de passage par 0°)
+            is_on_solid_part = angle_debut_norm <= angle_balle <= angle_fin_norm
+        else:
+            # Cas où l'arc passe par 0° (ex: de 350° à 10°)
+            is_on_solid_part = angle_balle >= angle_debut_norm or angle_balle <= angle_fin_norm
+        
+        # Retourner True si la balle est dans le TROU (pas sur la partie solide)
+        return not is_on_solid_part
+    
+    def update_position(self, centre, vitesse_max_balle, liste_arcs):
+        """
+        Met à jour la position avec gestion des collisions avec les arcs
+        """
+        rebond = False
+        arc_touche = None
+        
+        self.update_vitesse(vitesse_max_balle)
+        direction = self.position - centre
+        distance = np.linalg.norm(direction)
+        
+        # Vérifier collision avec le premier arc (le plus grand)
+        if liste_arcs:
+            premier_arc = liste_arcs[0]
+            rayon_cercle = premier_arc.rayon
+            
+            if distance > rayon_cercle - self.radius:
+                if distance != 0:
+                    # Vérifier si la balle est dans le "trou" de l'arc
+                    if self.est_dans_trou_arc(centre, premier_arc):
+                        # La balle passe dans le trou : détruire l'arc
+                        arc_touche = premier_arc
+                        print(f"Arc détruit ! Angle balle: {np.degrees(np.arctan2(direction[1], direction[0]))} Arc: {premier_arc.angle_debut:.1f}° à {premier_arc.angle_fin:.1f}° / {self.f}")
+                    else:
+                        # Collision normale avec l'arc : rebond
+                        direction_normale = direction / distance
+                        self.vitesse = self.vitesse - 2 * np.dot(self.vitesse, direction_normale) * direction_normale
+                        self.position = centre + direction_normale * (rayon_cercle - self.radius - 2)
+                        rebond = True
+        
         # Sauvegarder la position actuelle avant de la mettre à jour
         self.positions_precedentes.append(self.position.copy())
         self.position += self.vitesse
+        
+        return rebond, arc_touche
 
 class ArcCercle:
     def __init__(self, centre, rayon, angle_debut, angle_fin, couleur):
