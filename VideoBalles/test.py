@@ -3,7 +3,7 @@ import sys
 import os
 import numpy as np
 import pygame.midi
-
+from collections import deque
 from assets.image_to_video import create_video_from_images
 from assets.classes import Balle
 from assets.classes import Partie
@@ -41,6 +41,11 @@ partie = Partie(width, height, bg=(0, 0, 0), vitesse_max_balle=vitesse_max)
 
 #Ajout des balles
 partie.addBalle(width // 2, height // 2, 20, (255, 0, 0))
+partie.addArc((width // 2, height // 2), 200, 0, 300, (255, 255, 255))
+partie.addArc((width // 2, height // 2), 216, 0, 300, (255, 255, 255))
+partie.addArc((width // 2, height // 2), 232, 0, 300, (255, 255, 255))
+partie.addArc((width // 2, height // 2), 248, 0, 300, (255, 255, 255))
+partie.addArc((width // 2, height // 2), 264, 0, 300, (255, 255, 255))
 
 #Boucle des frames
 print("Création des images :")
