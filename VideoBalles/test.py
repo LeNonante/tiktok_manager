@@ -2,14 +2,18 @@ import pygame
 import sys
 import os
 import numpy as np
+import pygame.midi
 
 from assets.image_to_video import create_video_from_images
 from assets.classes import Balle
 from assets.classes import Partie
+from assets.classes import MidiController
 
+import mido
 
 total_frame=60*61
 vitesse_max = 10.0
+fichier_midi = "VideoBalles/assets/midi/Eiffel_65_I_m_Blue.mid" #chemin vide si pas de musique
 
 
 # Empêche  mise à l'échelle DPI automatique
@@ -28,6 +32,10 @@ height = screen_height
 
 centre=np.array([width//2,height//2]).astype(float) #Permet d'avoir la position du centre de l'écran
 
+#Chargement de la musique si le fichier existe
+if fichier_midi!="":
+    midi_controller = MidiController(fichier_midi)  
+
 #Création de la fenêtre
 partie = Partie(width, height, bg=(0, 0, 0), vitesse_max_balle=vitesse_max)
 
@@ -45,9 +53,13 @@ for frame in range(total_frame):
     partie.setPartie(centre)
     partie.Afficher()
 
+    if fichier_midi != "":
+        if partie.isRebond():
+            midi_controller.play_next_note()
+
     screen = partie.makeScreenshot(frame)
 
-
+midi_controller.cleanup()
 pygame.quit()
 print("Création de la vidéo : ")
 create_video_from_images("VideoBalles/assets/screen", "VideoBalles/resultat.mp4")
