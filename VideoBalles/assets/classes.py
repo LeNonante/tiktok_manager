@@ -61,7 +61,7 @@ class Partie:
         balle = Balle(x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score)
         self.liste_balles.append(balle)
     
-    def addArc(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc):
+    def addArc(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc, effet_hypnotique):
         """
         Ajoute un arc de cercle à la liste des arcs.
         Paramètres :
@@ -73,7 +73,7 @@ class Partie:
         Retour :
             None
         """
-        arc = ArcCercle(centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc)
+        arc = ArcCercle(centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc, effet_hypnotique)
         self.liste_arcs.append(arc)
 
     def setPartie(self, centre):
@@ -357,7 +357,7 @@ class Balle:
 
 
 class ArcCercle:
-    def __init__(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc):
+    def __init__(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc, effet_hypnotique):
         self.centre = np.array(centre).astype(float)
         self.rayonInitial = rayon
         self.rayon= rayon
@@ -365,19 +365,24 @@ class ArcCercle:
         self.angle_fin = angle_fin
         self.couleur = couleur
         self.angle_rotation_arc = angle_rotation_arc  # Angle de rotation de l'arc
+        self.effet_hypnotique = effet_hypnotique
 
     def draw(self, surface):
         """
         Dessine l'arc de cercle sur la surface donnée.
         """
-        pygame.draw.arc(surface, self.couleur, (self.centre[0] - self.rayon, self.centre[1] - self.rayon, 2 * self.rayon, 2 * self.rayon), np.deg2rad(self.angle_debut), np.deg2rad(self.angle_fin), 3)
+        pygame.draw.arc(surface, self.couleur, (self.centre[0] - self.rayon, self.centre[1] - self.rayon, 2 * self.rayon, 2 * self.rayon), np.deg2rad(self.angle_debut), np.deg2rad(self.angle_fin), 1)
 
     def tourner(self):
         """
         Tourne l'arc de cercle d'un certain angle.
         """
-        self.angle_debut += self.angle_rotation_arc
-        self.angle_fin += self.angle_rotation_arc
+        if self.effet_hypnotique:
+            self.angle_debut += self.angle_rotation_arc + self.rayon * 0.005  # Ajouter un petit mouvement de rotation
+            self.angle_fin += self.angle_rotation_arc + self.rayon * 0.005
+        else :
+            self.angle_debut += self.angle_rotation_arc
+            self.angle_fin += self.angle_rotation_arc
 
     def reduire_rayon(self, reduction):
         """

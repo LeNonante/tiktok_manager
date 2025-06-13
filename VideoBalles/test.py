@@ -26,7 +26,7 @@ nb_particules=170
 #PARTIE AJUSTABLE POUR LA PARTIE ---------------------------------------------------------------------------------------
 
 total_frame=60*61
-vitesse_max = 10.0
+vitesse_max = 8.0
 fichier_midi = "VideoBalles/assets/midi/Eiffel_65_I_m_Blue.mid" #chemin vide si pas de musique
 fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas de son
 fond_fenetre = (0, 0, 0)  # Couleur de fond de la fenêtre
@@ -34,6 +34,7 @@ rayon_min_arc = 100
 taille_premier_arc_debut=200
 reduction_arc=2
 limite_affichage_arc=532
+
 
 largeur_rectangle_score = 100  # Largeur du rectangle de score
 hauteur_rectangle_score = 50  # Hauteur du rectangle de score
@@ -113,8 +114,12 @@ partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interi
 #PARTIE AJUSTABLE POUR LES ARCS ---------------------------------------------------------------------------------------
 for i in range (1000) :
     #angle2 = randint(0, 360)
-    angle2 = (300 + i * 10) % 360
+    angle2 = (300 + i * 6) % 360
     angle = (angle2 + 45) % 360
+
+    effet_hypnotique=False
+    
+    color= (255,255,255) #[(255, 0, 0), (0, 0, 255)][i%2]  # Couleur de l'arc
 
     # Éviter les arcs trop larges (surface solide > 300°) sinon l'arc est mal affiché
     etendue = (angle - angle2) % 360
@@ -122,7 +127,7 @@ for i in range (1000) :
         i=i-1
         continue  # on saute cet arc
     rotation=0.5
-    partie.addArc((width // 2, height // 2), taille_premier_arc_debut + i*32, angle, angle2 , (255, 255, 255), rotation)
+    partie.addArc((width // 2, height // 2), taille_premier_arc_debut + i*12, angle, angle2 , color, rotation, effet_hypnotique)
 
 #Boucle des frames
 print("Création des images :")
