@@ -5,7 +5,7 @@ import mido
 from collections import deque
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, angle_rotation_arc, reduction_arc, limite_rayon_arc):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -13,11 +13,11 @@ class Partie:
         self.liste_balles = []
         self.vitesse_max_balle = vitesse_max_balle
         self.musique = False
-        self.angle_rotation_arc = angle_rotation_arc
         self.liste_arcs = []
         self.reduction_arc = reduction_arc
         self.rayon_premier_arc = None  # Rayon du premier arc
         self.limite_rayon_arc = limite_rayon_arc  # Limite de réduction du rayon de l'arc
+        self.limite_affichage_arc=limite_affichage_arc
 
     def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour):
         """
@@ -33,7 +33,7 @@ class Partie:
         balle = Balle(x, y, radius, color, trainee_length, couleur_interieur, taille_contour)
         self.liste_balles.append(balle)
     
-    def addArc(self, centre, rayon, angle_debut, angle_fin, couleur):
+    def addArc(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc):
         """
         Ajoute un arc de cercle à la liste des arcs.
         Paramètres :
@@ -45,7 +45,7 @@ class Partie:
         Retour :
             None
         """
-        arc = ArcCercle(centre, rayon, angle_debut, angle_fin, couleur)
+        arc = ArcCercle(centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc)
         self.liste_arcs.append(arc)
 
     def setPartie(self, centre):
@@ -71,7 +71,10 @@ class Partie:
                 if arc_touche is not None:
                     arcs_to_remove.append(arc_touche)
             else:
-                b.update_position(centre, self.vitesse_max_balle, self.rayon_premier_arc)
+                rebond, arc_touche = b.update_position(centre, self.vitesse_max_balle, self.liste_arcs)
+                # Si un arc a été touché, le marquer pour suppression
+                if arc_touche is not None:
+                    arcs_to_remove.append(arc_touche)
             b.draw(self.screen)
 
         # Supprimer les arcs touchés
@@ -80,11 +83,11 @@ class Partie:
                 self.liste_arcs.remove(arc)
         
         for arc in self.liste_arcs:
-            arc.tourner(self.angle_rotation_arc)
+            arc.tourner()
             if self.rayon_premier_arc is not None:
                 if self.rayon_premier_arc > self.limite_rayon_arc :
                     arc.reduire_rayon(self.reduction_arc)
-            if arc.rayon <= 232:
+            if arc.rayon <= self.limite_affichage_arc:
                 arc.draw(self.screen)
         
         return rebond
@@ -247,13 +250,14 @@ class Balle:
         return rebond, arc_touche
 
 class ArcCercle:
-    def __init__(self, centre, rayon, angle_debut, angle_fin, couleur):
+    def __init__(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc):
         self.centre = np.array(centre).astype(float)
         self.rayonInitial = rayon
         self.rayon= rayon
         self.angle_debut = angle_debut
         self.angle_fin = angle_fin
         self.couleur = couleur
+        self.angle_rotation_arc = angle_rotation_arc  # Angle de rotation de l'arc
 
     def draw(self, surface):
         """
@@ -261,13 +265,13 @@ class ArcCercle:
         """
         pygame.draw.arc(surface, self.couleur, (self.centre[0] - self.rayon, self.centre[1] - self.rayon, 2 * self.rayon, 2 * self.rayon), np.deg2rad(self.angle_debut), np.deg2rad(self.angle_fin), 3)
 
-    def tourner(self, angle):
+    def tourner(self):
         """
         Tourne l'arc de cercle d'un certain angle.
         """
-        self.angle_debut += 3
-        self.angle_fin += 3
-    
+        self.angle_debut += self.angle_rotation_arc
+        self.angle_fin += self.angle_rotation_arc
+
     def reduire_rayon(self, reduction):
         """
         Réduit le rayon de l'arc de cercle.

@@ -13,7 +13,6 @@ import mido
 
 #A faire :
 # - Randomiser départ balle
-# - enlever rotation arc de partie et le mettre dans arc
 # - passer les arcs en full class
 
 total_frame=60*61
@@ -21,8 +20,8 @@ vitesse_max = 10.0
 fichier_midi = "VideoBalles/assets/midi/Eiffel_65_I_m_Blue.mid" #chemin vide si pas de musique
 fond_fenetre = (0, 0, 0)  # Couleur de fond de la fenêtre
 rayon_min_arc = 100
-reduction_arc=0.1
-
+reduction_arc=0.5
+limite_affichage_arc=232
 
 
 # Empêche  mise à l'échelle DPI automatique
@@ -46,7 +45,7 @@ if fichier_midi!="":
     midi_controller = MidiController(fichier_midi)  
 
 #Création de la fenêtre
-partie = Partie(width, height, fond_fenetre, vitesse_max, 0.2, reduction_arc, rayon_min_arc)
+partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc)
 
 
 
@@ -65,14 +64,29 @@ taille_trainee = 10  # Taille de la traînée des balles
 
 partie.addBalle(width // 2, height // 2, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour) #
 
+couleur_balle = (0, 255, 0)  # Couleur des balles
+rayon_balle = 20  # Taille des balles
+couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
+taille_contour = 5  # Taille du contour des balles
+taille_trainee = 10  # Taille de la traînée des balles
 
+partie.addBalle(width // 2+10, height // 2+10, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour) #
+
+couleur_balle = (0, 0, 255)  # Couleur des balles
+rayon_balle = 20  # Taille des balles
+couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
+taille_contour = 5  # Taille du contour des balles
+taille_trainee = 10  # Taille de la traînée des balles
+
+partie.addBalle(width // 2-10, height // 2-10, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour)
 
 
 
 for i in range (1000) :
     angle2 = randint(0, 360)
     angle=(angle2+60)%360
-    partie.addArc((width // 2, height // 2), 200 + i*16, angle, angle2 , (255, 255, 255))
+    rotation=0.2
+    partie.addArc((width // 2, height // 2), 200 + i*16, angle, angle2 , (255, 255, 255), rotation)
 
 #Boucle des frames
 print("Création des images :")
