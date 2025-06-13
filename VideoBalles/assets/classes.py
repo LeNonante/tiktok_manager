@@ -28,6 +28,7 @@ class Partie:
         self.fps = fps  # Frames par seconde
         self.total_frame = total_frame  # Nombre total de frames pour la vidéo
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         # Système de particules
         self.systeme_particules = SystemeParticules()
@@ -60,6 +61,8 @@ class Partie:
             arc.centre, arc.rayon, arc.angle_debut, arc.angle_fin, arc.couleur, 20
         )
 
+=======
+>>>>>>> parent of 8add65d (Son destruction)
 =======
 >>>>>>> parent of 8add65d (Son destruction)
     def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
