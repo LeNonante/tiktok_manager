@@ -15,9 +15,7 @@ import math
 import mido
 
 #A faire :
-# - Ajouter des particules
-# - Ajouter des sons quand les arcs sont détruits
-# - Ajouter des images
+
 pygame.mixer.init()
 
 
@@ -34,7 +32,7 @@ fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas
 fond_fenetre = (0, 0, 0)  # Couleur de fond de la fenêtre
 rayon_min_arc = 100
 taille_premier_arc_debut=200
-reduction_arc=1
+reduction_arc=2
 limite_affichage_arc=532
 
 largeur_rectangle_score = 100  # Largeur du rectangle de score
@@ -113,13 +111,18 @@ y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (
 partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text,  image, couleur_rectangle_score, couleur_texte_score) #
 
 #PARTIE AJUSTABLE POUR LES ARCS ---------------------------------------------------------------------------------------
-
 for i in range (1000) :
-    angle2 = randint(0, 360)
-    #angle2 = 300+ i*7
-    angle=(angle2+45)%360
+    #angle2 = randint(0, 360)
+    angle2 = (300 + i * 10) % 360
+    angle = (angle2 + 45) % 360
+
+    # Éviter les arcs trop larges (surface solide > 300°) sinon l'arc est mal affiché
+    etendue = (angle - angle2) % 360
+    if etendue > 300:
+        i=i-1
+        continue  # on saute cet arc
     rotation=0.5
-    partie.addArc((width // 2, height // 2), taille_premier_arc_debut + i*16, angle, angle2 , (255, 255, 255), rotation)
+    partie.addArc((width // 2, height // 2), taille_premier_arc_debut + i*32, angle, angle2 , (255, 255, 255), rotation)
 
 #Boucle des frames
 print("Création des images :")
