@@ -7,7 +7,7 @@ import random
 import math
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -27,11 +27,6 @@ class Partie:
         self.frame = 0  # Compteur de frames
         self.fps = fps  # Frames par seconde
         self.total_frame = total_frame  # Nombre total de frames pour la vidéo
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-        # Système de particules
-        self.systeme_particules = SystemeParticules()
 
         # Charger le son de destruction
         self.son_destruction = None
@@ -47,24 +42,8 @@ class Partie:
         if self.son_destruction:
             self.son_destruction.play()
 
-    def creer_effet_destruction(self, arc):
-        """Crée les effets de particules pour la destruction d'un arc"""
-        # Explosion au centre de l'arc
-        centre_arc_x = arc.centre[0]
-        centre_arc_y = arc.centre[1]
-        
-        # Créer une explosion générale
-        self.systeme_particules.creer_explosion(centre_arc_x, centre_arc_y, arc.couleur, 25)
-        
-        # Créer des étincelles le long de l'arc
-        self.systeme_particules.creer_etincelles_arc(
-            arc.centre, arc.rayon, arc.angle_debut, arc.angle_fin, arc.couleur, 20
-        )
 
-=======
->>>>>>> parent of 8add65d (Son destruction)
-=======
->>>>>>> parent of 8add65d (Son destruction)
+
     def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
         """
         Ajoute une nouvelle balle à la liste des balles.
@@ -129,9 +108,7 @@ class Partie:
         # Supprimer les arcs touchés
         for arc in arcs_to_remove:
             if arc in self.liste_arcs:
-                # Créer les effets de particules AVANT de supprimer l'arc
-                self.creer_effet_destruction(arc)
-
+                self.jouer_son_destruction()  # Jouer le son de destruction
                 self.liste_arcs.remove(arc)
         
         for arc in self.liste_arcs:
@@ -141,10 +118,6 @@ class Partie:
                     arc.reduire_rayon(self.reduction_arc)
             if arc.rayon <= self.limite_affichage_arc:
                 arc.draw(self.screen)
-
-        # Mettre à jour et dessiner les particules
-        self.systeme_particules.update()
-        self.systeme_particules.draw(self.screen)
 
 
         self.frame += 1
@@ -456,274 +429,3 @@ class MidiController:
         self.stop_all_notes()
         self.midi_out.close()
         pygame.midi.quit()
-
-class ParticuleForme:
-    def __init__(self, x, y, couleur, vitesse_x, vitesse_y, taille, duree_vie, position_originale):
-        self.position = np.array([x, y]).astype(float)
-        self.position_originale = np.array(position_originale).astype(float)  # Position sur l'arc original
-        self.vitesse = np.array([vitesse_x, vitesse_y]).astype(float)
-        self.couleur = couleur
-        self.taille_initiale = taille
-        self.taille = taille
-        self.duree_vie_max = duree_vie
-        self.duree_vie = duree_vie
-        self.alpha = 255  # Transparence
-        
-    def update(self):
-        """Met à jour la particule (position, taille, transparence)"""
-        # Mettre à jour la position
-        self.position += self.vitesse
-        
-        # Ajouter de la gravité légère
-        self.vitesse[1] += 0.15
-        
-        # Réduire la friction
-        self.vitesse *= 0.995
-        
-        # Réduire la durée de vie
-        self.duree_vie -= 1
-        
-        # Calculer l'alpha et la taille en fonction de la durée de vie restante
-        ratio_vie = self.duree_vie / self.duree_vie_max
-        self.alpha = int(255 * ratio_vie)
-        self.taille = max(1, int(self.taille_initiale * ratio_vie))
-        
-        return self.duree_vie > 0  # Retourne True si la particule est encore vivante
-    
-    def draw(self, surface):
-        """Dessine la particule avec transparence"""
-        if self.duree_vie <= 0:
-            return
-            
-        # Créer une couleur avec transparence
-        couleur_avec_alpha = (*self.couleur, self.alpha)
-        
-        # Créer une surface temporaire pour la transparence
-        temp_surface = pygame.Surface((self.taille * 2, self.taille * 2), pygame.SRCALPHA)
-        pygame.draw.circle(temp_surface, couleur_avec_alpha, (self.taille, self.taille), self.taille)
-        
-        # Dessiner sur la surface principale
-        surface.blit(temp_surface, (self.position[0] - self.taille, self.position[1] - self.taille))
-
-
-
-class Particule:
-    def __init__(self, x, y, couleur, vitesse_x, vitesse_y, taille, duree_vie):
-        self.position = np.array([x, y]).astype(float)
-        self.vitesse = np.array([vitesse_x, vitesse_y]).astype(float)
-        self.couleur = couleur
-        self.taille_initiale = taille
-        self.taille = taille
-        self.duree_vie_max = duree_vie
-        self.duree_vie = duree_vie
-        self.alpha = 255  # Transparence
-        
-    def update(self):
-        """Met à jour la particule (position, taille, transparence)"""
-        # Mettre à jour la position
-        self.position += self.vitesse
-        
-        # Ajouter de la gravité
-        self.vitesse[1] += 0.1
-        
-        # Réduire la friction
-        self.vitesse *= 0.98
-        
-        # Réduire la durée de vie
-        self.duree_vie -= 1
-        
-        # Calculer l'alpha et la taille en fonction de la durée de vie restante
-        ratio_vie = self.duree_vie / self.duree_vie_max
-        self.alpha = int(255 * ratio_vie)
-        self.taille = max(1, int(self.taille_initiale * ratio_vie))
-        
-        return self.duree_vie > 0  # Retourne True si la particule est encore vivante
-    
-    def draw(self, surface):
-        """Dessine la particule avec transparence"""
-        if self.duree_vie <= 0:
-            return
-            
-        # Créer une couleur avec transparence
-        couleur_avec_alpha = (*self.couleur, self.alpha)
-        
-        # Créer une surface temporaire pour la transparence
-        temp_surface = pygame.Surface((self.taille * 2, self.taille * 2), pygame.SRCALPHA)
-        pygame.draw.circle(temp_surface, couleur_avec_alpha, (self.taille, self.taille), self.taille)
-        
-        # Dessiner sur la surface principale
-        surface.blit(temp_surface, (self.position[0] - self.taille, self.position[1] - self.taille))
-
-class SystemeParticules:
-    def __init__(self):
-        self.particules = []
-
-    def creer_explosion(self, x, y, couleur_arc, nombre_particules=20):
-        """Crée une explosion de particules à la position donnée"""
-        couleurs_explosion = [
-            couleur_arc,  # Couleur de l'arc
-            (255, 255, 255),  # Blanc
-            (255, 255, 0),    # Jaune
-            (255, 200, 0),    # Orange
-            (255, 100, 100),  # Rouge clair
-        ]
-        
-        for _ in range(nombre_particules):
-            # Direction aléatoire
-            angle = random.uniform(0, 2 * math.pi)
-            vitesse_magnitude = random.uniform(2, 8)
-            
-            vitesse_x = math.cos(angle) * vitesse_magnitude
-            vitesse_y = math.sin(angle) * vitesse_magnitude
-            
-            # Propriétés aléatoires
-            couleur = random.choice(couleurs_explosion)
-            taille = random.randint(2, 6)
-            duree_vie = random.randint(30, 60)  # 30-60 frames
-            
-            # Ajouter un peu de dispersion à la position
-            pos_x = x + random.uniform(-10, 10)
-            pos_y = y + random.uniform(-10, 10)
-            
-            particule = Particule(pos_x, pos_y, couleur, vitesse_x, vitesse_y, taille, duree_vie)
-            self.particules.append(particule)
-    
-    def creer_etincelles_arc(self, centre, rayon, angle_debut, angle_fin, couleur_arc, nombre_etincelles=15):
-        """Crée des étincelles le long de l'arc détruit"""
-        # Convertir les angles en radians
-        angle_debut_rad = math.radians(angle_debut)
-        angle_fin_rad = math.radians(angle_fin)
-        
-        # Gérer le cas où l'arc passe par 0°
-        if angle_fin < angle_debut:
-            angle_fin_rad += 2 * math.pi
-        
-        for i in range(nombre_etincelles):
-            # Position le long de l'arc
-            if nombre_etincelles > 1:
-                t = i / (nombre_etincelles - 1)
-            else:
-                t = 0.5
-                
-            angle = angle_debut_rad + t * (angle_fin_rad - angle_debut_rad)
-            
-            x = centre[0] + rayon * math.cos(angle)
-            y = centre[1] + rayon * math.sin(angle)
-            
-            # Vitesse vers l'extérieur avec un peu d'aléatoire
-            vitesse_x = math.cos(angle) * random.uniform(1, 4) + random.uniform(-1, 1)
-            vitesse_y = math.sin(angle) * random.uniform(1, 4) + random.uniform(-1, 1)
-            
-            couleur = couleur_arc
-            taille = random.randint(1, 3)
-            duree_vie = random.randint(20, 40)
-            
-            particule = Particule(x, y, couleur, vitesse_x, vitesse_y, taille, duree_vie)
-            self.particules.append(particule)
-
-
-
-    def decomposer_arc(self, centre, rayon, angle_debut, angle_fin, couleur_arc, epaisseur_arc=3):
-        """Décompose un arc en particules qui suivent sa forme exacte"""
-        # Convertir les angles en radians
-        angle_debut_rad = math.radians(angle_debut)
-        angle_fin_rad = math.radians(angle_fin)
-        
-        # Gérer le cas où l'arc passe par 0°
-        if angle_fin < angle_debut:
-            angle_fin_rad += 2 * math.pi
-        
-        # Calculer la longueur de l'arc pour déterminer le nombre de particules
-        longueur_arc = abs(angle_fin_rad - angle_debut_rad) * rayon
-        nombre_particules_arc = max(10, int(longueur_arc / 5))  # Une particule tous les 5 pixels environ
-        
-        # Créer les particules le long de l'arc
-        for i in range(nombre_particules_arc):
-            # Position le long de l'arc
-            if nombre_particules_arc > 1:
-                t = i / (nombre_particules_arc - 1)
-            else:
-                t = 0.5
-                
-            angle = angle_debut_rad + t * (angle_fin_rad - angle_debut_rad)
-            
-            # Pour simuler l'épaisseur de l'arc, créer plusieurs particules à des rayons légèrement différents
-            for j in range(epaisseur_arc):
-                rayon_particule = rayon + (j - epaisseur_arc // 2)
-                
-                x = centre[0] + rayon_particule * math.cos(angle)
-                y = centre[1] + rayon_particule * math.sin(angle)
-                
-                # Vitesse : principalement vers l'extérieur avec un peu d'aléatoire
-                # Direction normale à l'arc (perpendiculaire)
-                vitesse_radiale = random.uniform(1, 3)
-                vitesse_tangentielle = random.uniform(-0.5, 0.5)
-                
-                vitesse_x = math.cos(angle) * vitesse_radiale + math.cos(angle + math.pi/2) * vitesse_tangentielle
-                vitesse_y = math.sin(angle) * vitesse_radiale + math.sin(angle + math.pi/2) * vitesse_tangentielle
-                
-                # Ajouter un peu de dispersion aléatoire
-                vitesse_x += random.uniform(-0.5, 0.5)
-                vitesse_y += random.uniform(-0.5, 0.5)
-                
-                # Propriétés de la particule
-                taille = random.randint(1, 3)
-                duree_vie = random.randint(60, 100)  # 60-100 frames (1-1.6 secondes à 60fps)
-                
-                # Variations de couleur pour plus de réalisme
-                r, g, b = couleur_arc
-                r = max(0, min(255, r + random.randint(-30, 30)))
-                g = max(0, min(255, g + random.randint(-30, 30)))
-                b = max(0, min(255, b + random.randint(-30, 30)))
-                couleur_particule = (r, g, b)
-                
-                particule = ParticuleForme(x, y, couleur_particule, vitesse_x, vitesse_y, 
-                                         taille, duree_vie, (x, y))
-                self.particules.append(particule)
-    
-    def ajouter_effet_destruction_supplementaire(self, centre, rayon, couleur_arc):
-        """Ajoute quelques particules d'impact au centre pour l'effet"""
-        for _ in range(8):
-            # Direction aléatoire
-            angle = random.uniform(0, 2 * math.pi)
-            vitesse_magnitude = random.uniform(0.5, 2)
-            
-            vitesse_x = math.cos(angle) * vitesse_magnitude
-            vitesse_y = math.sin(angle) * vitesse_magnitude
-            
-            # Particules plus brillantes pour l'impact
-            couleur_impact = (
-                min(255, couleur_arc[0] + 50),
-                min(255, couleur_arc[1] + 50),
-                min(255, couleur_arc[2] + 50)
-            )
-            
-            taille = random.randint(2, 4)
-            duree_vie = random.randint(20, 40)
-            
-            # Position légèrement dispersée autour du centre
-            pos_x = centre[0] + random.uniform(-5, 5)
-            pos_y = centre[1] + random.uniform(-5, 5)
-            
-            particule = ParticuleForme(pos_x, pos_y, couleur_impact, vitesse_x, vitesse_y, 
-                                     taille, duree_vie, (pos_x, pos_y))
-            self.particules.append(particule)
-    
-    def update(self):
-        """Met à jour toutes les particules et supprime celles qui sont mortes"""
-        particules_vivantes = []
-        
-        for particule in self.particules:
-            if particule.update():  # Si la particule est encore vivante
-                particules_vivantes.append(particule)
-        
-        self.particules = particules_vivantes
-    
-    def draw(self, surface):
-        """Dessine toutes les particules"""
-        for particule in self.particules:
-            particule.draw(surface)
-    
-    def get_nombre_particules(self):
-        """Retourne le nombre de particules actives"""
-        return len(self.particules)
