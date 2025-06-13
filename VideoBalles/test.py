@@ -3,7 +3,6 @@ import sys
 import os
 import numpy as np
 import pygame.midi
-import pygame.mixer
 from collections import deque
 from assets.image_to_video import create_video_from_images
 from assets.classes import Balle
@@ -17,12 +16,12 @@ import mido
 #A faire :
 # - Ajouter des particules
 # - Ajouter des sons quand les arcs sont détruits
-# Paramétrer les arcs
+# - Ajouter des images
+
 
 total_frame=60*61
 vitesse_max = 10.0
 fichier_midi = "VideoBalles/assets/midi/Eiffel_65_I_m_Blue.mid" #chemin vide si pas de musique
-fichier_son_destruction = "VideoBalles/assets/midi/SoundTest.mp3"
 fond_fenetre = (0, 0, 0)  # Couleur de fond de la fenêtre
 rayon_min_arc = 100
 taille_premier_arc_debut=200
@@ -55,7 +54,7 @@ if fichier_midi!="":
     midi_controller = MidiController(fichier_midi)  
 
 #Création de la fenêtre
-partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction)
+partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame)
 
 
 
@@ -124,14 +123,13 @@ for frame in range(total_frame):
             pygame.quit()
             sys.exit()
 
-    isRebond, arcDetruit =partie.setPartie(centre)
+    isRebond=partie.setPartie(centre)
     
     partie.Afficher()
 
     if fichier_midi != "":
         if isRebond:
             midi_controller.play_next_note()
-    
 
     screen = partie.makeScreenshot(frame)
 

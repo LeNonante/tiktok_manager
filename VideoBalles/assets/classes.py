@@ -7,7 +7,7 @@ import random
 import math
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -27,6 +27,7 @@ class Partie:
         self.frame = 0  # Compteur de frames
         self.fps = fps  # Frames par seconde
         self.total_frame = total_frame  # Nombre total de frames pour la vidéo
+<<<<<<< HEAD
 
         # Système de particules
         self.systeme_particules = SystemeParticules()
@@ -59,6 +60,8 @@ class Partie:
             arc.centre, arc.rayon, arc.angle_debut, arc.angle_fin, arc.couleur, 20
         )
 
+=======
+>>>>>>> parent of 8add65d (Son destruction)
     def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
         """
         Ajoute une nouvelle balle à la liste des balles.
@@ -103,7 +106,6 @@ class Partie:
         # Stocker les arcs à supprimer
         arcs_to_remove = []
 
-        arcDetruit = False
         for i in range(len(self.liste_balles)):
             b=self.liste_balles[i]
             if i==0 :
@@ -123,13 +125,11 @@ class Partie:
 
         # Supprimer les arcs touchés
         for arc in arcs_to_remove:
-            arcDetruit = True
             if arc in self.liste_arcs:
                 # Créer les effets de particules AVANT de supprimer l'arc
                 self.creer_effet_destruction(arc)
 
                 self.liste_arcs.remove(arc)
-                self.jouer_son_destruction()
         
         for arc in self.liste_arcs:
             arc.tourner()
@@ -171,7 +171,7 @@ class Partie:
         time_rect = time_surface.get_rect(center=(self.width / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score + hauteur / 2))
         self.screen.blit(time_surface, time_rect)
 
-        return rebond, arcDetruit
+        return rebond
 
     # def isRebond(self):
     #     """
