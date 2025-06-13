@@ -68,11 +68,11 @@ rayon_balle = 20  # Taille des balles
 couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
 taille_contour = 2  # Taille du contour des balles
 taille_trainee = 10  # Taille de la traînée des balles
-text = "NO"
-afficher_text = True  # Afficher le texte sur les balles
+text = "ALL"
+afficher_text = False  # Afficher le texte sur les balles
 taille_font = 25
 couleur_texte = (255, 255, 255)  # Couleur du texte
-image="VideoBalles/assets/images/1.jpg"  # Chemin de l'image de la balle
+image="VideoBalles/assets/images/allemagne.png"  # Chemin de l'image de la balle
 couleur_rectangle_score = (185, 0, 0)
 couleur_texte_score = (255, 255, 255)
 
@@ -84,21 +84,21 @@ y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (
 
 partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score) #
 
-couleur_balle = (0, 255, 0)  # Couleur des balles
+couleur_balle = (0, 0, 255)  # Couleur des balles
 rayon_balle = 20  # Taille des balles
 couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
 taille_contour = 2  # Taille du contour des balles
 taille_trainee = 10  # Taille de la traînée des balles
-couleur_rectangle_score = (0, 185, 0)
+couleur_rectangle_score = (0, 0, 185)
 couleur_texte_score = (255, 255, 255)
 # Position aléatoire de la balle dans un carré centré dans le premier arc
 #retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
 # On ajoute 1 pour éviter que la balle ne soit collée au bord
-text = "YES"
-afficher_text = True  # Afficher le texte sur les balles
+text = "FRA"
+afficher_text = False  # Afficher le texte sur les balles
 taille_font = 25
 couleur_texte = (255, 255, 255)  # Couleur du texte
-image="VideoBalles/assets/images/2.png"
+image="VideoBalles/assets/images/1.jpg"  # Chemin de l'image de la balle
 x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 
@@ -107,8 +107,8 @@ partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interi
 
 
 for i in range (1000) :
-    #angle2 = randint(0, 360)
-    angle2 = 300+ i*7
+    angle2 = randint(0, 360)
+    #angle2 = 300+ i*7
     angle=(angle2+45)%360
     rotation=0.5
     partie.addArc((width // 2, height // 2), taille_premier_arc_debut + i*16, angle, angle2 , (255, 255, 255), rotation)
@@ -134,7 +134,7 @@ for frame in range(total_frame):
 midi_controller.cleanup()
 pygame.quit()
 print("Création de la vidéo : ")
-create_video_from_images("VideoBalles/assets/screen", "VideoBalles/resultat.mp4")
+create_video_from_images("VideoBalles/assets/screen", "VideoBalles/assets/videos/resultat.mp4")
 
 sys.exit()
 
