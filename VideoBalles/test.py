@@ -38,7 +38,7 @@ limite_affichage_arc=532
 
 largeur_rectangle_score = 100  # Largeur du rectangle de score
 hauteur_rectangle_score = 50  # Hauteur du rectangle de score
-y_rectangle_score = 250  # Position Y du rectangle de score
+y_rectangle_score = 150  # Position Y du rectangle de score
 intervalle_x_rectangle_score = 10  # Espace entre les rectangles de score
 
 # Empêche  mise à l'échelle DPI automatique
@@ -118,7 +118,7 @@ for i in range (1000) :
     angle = (angle2 + 45) % 360
 
     effet_hypnotique=False
-    
+
     color= (255,255,255) #[(255, 0, 0), (0, 0, 255)][i%2]  # Couleur de l'arc
 
     # Éviter les arcs trop larges (surface solide > 300°) sinon l'arc est mal affiché
