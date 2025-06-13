@@ -5,7 +5,7 @@ import mido
 from collections import deque
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -18,8 +18,14 @@ class Partie:
         self.rayon_premier_arc = None  # Rayon du premier arc
         self.limite_rayon_arc = limite_rayon_arc  # Limite de réduction du rayon de l'arc
         self.limite_affichage_arc=limite_affichage_arc
-
-    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour):
+        self.largeur_rectangle_score = largeur_rectangle_score  # Largeur du rectangle de score
+        self.hauteur_rectangle_score = hauteur_rectangle_score  # Hauteur du rectangle de score
+        self.y_rectangle_score = y_rectangle_score 
+        self.intervalle_x_rectangle_score = intervalle_x_rectangle_score  # Espace entre les rectangles de score
+        self.frame = 0  # Compteur de frames
+        self.fps = fps  # Frames par seconde
+        self.total_frame = total_frame  # Nombre total de frames pour la vidéo
+    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
         """
         Ajoute une nouvelle balle à la liste des balles.
         Paramètres :
@@ -30,7 +36,7 @@ class Partie:
         Retour :
             None
         """
-        balle = Balle(x, y, radius, color, trainee_length, couleur_interieur, taille_contour)
+        balle = Balle(x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score)
         self.liste_balles.append(balle)
     
     def addArc(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc):
@@ -69,12 +75,15 @@ class Partie:
                 rebond, arc_touche = b.update_position(centre, self.vitesse_max_balle, self.liste_arcs)
                 # Si un arc a été touché, le marquer pour suppression
                 if arc_touche is not None:
+                    b.add_Point()
                     arcs_to_remove.append(arc_touche)
             else:
                 rebond, arc_touche = b.update_position(centre, self.vitesse_max_balle, self.liste_arcs)
                 # Si un arc a été touché, le marquer pour suppression
                 if arc_touche is not None:
+                    b.add_Point()
                     arcs_to_remove.append(arc_touche)
+            print(f"Balle {i+1} - Position: {b.position}, Vitesse: {b.vitesse}, Score: {b.score}")
             b.draw(self.screen)
 
         # Supprimer les arcs touchés
@@ -89,7 +98,34 @@ class Partie:
                     arc.reduire_rayon(self.reduction_arc)
             if arc.rayon <= self.limite_affichage_arc:
                 arc.draw(self.screen)
-        
+
+        self.frame += 1
+        #Affichage des scores
+        for i in range(len(self.liste_balles)):
+            b=self.liste_balles[i]
+
+            x1 = (self.width - self.largeur_rectangle_score*len(self.liste_balles) - self.intervalle_x_rectangle_score*(len(self.liste_balles)-1)) /2 + i*(self.largeur_rectangle_score+self.intervalle_x_rectangle_score)  # Position x du rectangle de score
+            y1 = self.y_rectangle_score
+            largeur = self.largeur_rectangle_score
+            hauteur = self.hauteur_rectangle_score
+
+            couleur_rectangle = b.couleur_rectangle_score
+            couleur_score = b.couleur_texte_score
+            text = b.text
+            score = b.score
+
+            pygame.draw.rect(self.screen, couleur_rectangle, [x1, y1, largeur, hauteur])  # rectangle
+            font_score = pygame.font.Font(None, 30)
+            score_surface = font_score.render(f"{text}: {score}", True, couleur_score)  # Utiliser la couleur du texte du score
+            score_rect = score_surface.get_rect(center=(x1 + largeur/2, y1 + hauteur/2))
+            self.screen.blit(score_surface, score_rect)
+
+        largeur_rectangle_temps = self.largeur_rectangle_score+30
+        pygame.draw.rect(self.screen, (255, 255, 255), [(self.width - largeur_rectangle_temps) / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score, largeur_rectangle_temps, hauteur])  # rectangle
+        time_surface = font_score.render(f"Time left: { (self.total_frame - self.frame) / self.fps:.0f}", True, (0, 0, 0))
+        time_rect = time_surface.get_rect(center=(self.width / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score + hauteur / 2))
+        self.screen.blit(time_surface, time_rect)
+
         return rebond
 
     # def isRebond(self):
@@ -125,7 +161,8 @@ class Partie:
 
 
 class Balle:
-    def __init__(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour):
+    def __init__(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
+        self.score= 0
         self.position=np.array([x+10,y]).astype(float)
         self.vitesse=np.array([0,0]).astype(float)
         self.radius = radius
@@ -136,6 +173,13 @@ class Balle:
         self.trainee_length = trainee_length  # Nombre de positions à garder en mémoire
         self.positions_precedentes = deque(maxlen=trainee_length)
         self.positions_precedentes.append(self.position.copy())
+        self.text = text  
+        self.taille_font = taille_font  # Taille de la police pour le texte
+        self.couleur_texte = couleur_texte  # Couleur du texte
+        self.afficher_text = afficher_text  # Indique si le texte doit être affiché
+        self.image = pygame.image.load(image).convert_alpha() if image!="" else None  # Charger l'image de la balle
+        self.couleur_rectangle_score = couleur_rectangle_score  # Couleur du rectangle de score
+        self.couleur_texte_score = couleur_texte_score  # Couleur du texte du score
 
     def draw(self, surface):
         """
@@ -143,9 +187,41 @@ class Balle:
         """
         # Dessiner la traînée
         self.draw_trainee(surface)
-        pygame.draw.circle(surface, self.color, self.position, self.radius)
-        pygame.draw.circle(surface, self.couleur_interieur, self.position, self.radius-self.taille_contour)
 
+        if self.image is not None: #si il y a une image
+            # Redimensionner l'image de la balle pour qu'elle corresponde au rayon
+            image_rond = pygame.transform.smoothscale(self.image, (self.radius * 2, self.radius * 2))
+            # Créer un masque circulaire
+            mask = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(mask, (255, 255, 255, 255), (self.radius, self.radius), self.radius)
+            # Appliquer le masque à l'image
+            image_rond.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+            self.image = image_rond
+            # Positionner l'image au centre de la balle
+            image_rect = self.image.get_rect(center=self.position)
+            surface.blit(self.image, image_rect)
+            pygame.draw.circle(surface, self.color, self.position, self.radius, self.taille_contour)  # Dessiner le contour de la balle
+        
+        else:  # Si pas d'image, dessiner un cercle
+            #Contours
+            pygame.draw.circle(surface, self.color, self.position, self.radius)
+            # Dessiner le cercle intérieur par-dessus l'image
+            pygame.draw.circle(surface, self.couleur_interieur, self.position, self.radius-self.taille_contour)
+        
+        # ecrire le texte au centre de la balle
+        if self.afficher_text:
+            font = pygame.font.Font(None, self.taille_font)
+            text_surface = font.render(self.text, True, self.couleur_texte)
+            text_rect = text_surface.get_rect(center=self.position)
+            surface.blit(text_surface, text_rect)
+        
+        
+
+    def add_Point(self):
+        """
+        Ajoute un point au score de la balle.
+        """
+        self.score += 1
 
     def draw_trainee(self, surface):
         """
@@ -180,7 +256,6 @@ class Balle:
         speed = np.linalg.norm(self.vitesse)
         if speed > vitesse_max_balle:
             self.vitesse = (self.vitesse / speed) * vitesse_max_balle
-        print(self.vitesse)
 
     def est_dans_trou_arc(self, centre, arc):
 
@@ -248,6 +323,7 @@ class Balle:
         self.position += self.vitesse
         
         return rebond, arc_touche
+
 
 class ArcCercle:
     def __init__(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc):
