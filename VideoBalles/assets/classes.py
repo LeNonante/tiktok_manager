@@ -5,7 +5,7 @@ import mido
 from collections import deque
 
 class Partie:
-    def __init__(self, width, height, bg=(0, 0, 0), vitesse_max_balle=10.0, angle_rotation_arc=0.2, reduction_arc=0.1, limite_rayon_arc=110):
+    def __init__(self, width, height, bg, vitesse_max_balle, angle_rotation_arc, reduction_arc, limite_rayon_arc):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -19,7 +19,7 @@ class Partie:
         self.rayon_premier_arc = None  # Rayon du premier arc
         self.limite_rayon_arc = limite_rayon_arc  # Limite de réduction du rayon de l'arc
 
-    def addBalle(self, x, y, radius, color):
+    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour):
         """
         Ajoute une nouvelle balle à la liste des balles.
         Paramètres :
@@ -30,7 +30,7 @@ class Partie:
         Retour :
             None
         """
-        balle = Balle(x, y, radius, color)
+        balle = Balle(x, y, radius, color, trainee_length, couleur_interieur, taille_contour)
         self.liste_balles.append(balle)
     
     def addArc(self, centre, rayon, angle_debut, angle_fin, couleur):
@@ -122,16 +122,17 @@ class Partie:
 
 
 class Balle:
-    def __init__(self, x, y, radius, color, trainee_length=10):
+    def __init__(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour):
         self.position=np.array([x+10,y]).astype(float)
         self.vitesse=np.array([0,0]).astype(float)
         self.radius = radius
         self.color = color
+        self.couleur_interieur = couleur_interieur  # Couleur intérieure de la balle
+        self.taille_contour = taille_contour  # Taille du contour de la balle
         # Pour la traînée
         self.trainee_length = trainee_length  # Nombre de positions à garder en mémoire
         self.positions_precedentes = deque(maxlen=trainee_length)
         self.positions_precedentes.append(self.position.copy())
-        self.f=0
 
     def draw(self, surface):
         """
@@ -140,8 +141,8 @@ class Balle:
         # Dessiner la traînée
         self.draw_trainee(surface)
         pygame.draw.circle(surface, self.color, self.position, self.radius)
-        pygame.draw.circle(surface, (0,0,0), self.position, self.radius-5)
-        self.f+=1
+        pygame.draw.circle(surface, self.couleur_interieur, self.position, self.radius-self.taille_contour)
+
 
     def draw_trainee(self, surface):
         """
@@ -231,7 +232,7 @@ class Balle:
                     if self.est_dans_trou_arc(centre, premier_arc):
                         # La balle passe dans le trou : détruire l'arc
                         arc_touche = premier_arc
-                        print(f"Arc détruit ! Angle balle: {np.degrees(np.arctan2(direction[1], direction[0]))} Arc: {premier_arc.angle_debut:.1f}° à {premier_arc.angle_fin:.1f}° / {self.f}")
+                        print(f"Arc détruit ! Angle balle: {np.degrees(np.arctan2(direction[1], direction[0]))} Arc: {premier_arc.angle_debut:.1f}° à {premier_arc.angle_fin:.1f}°")
                     else:
                         # Collision normale avec l'arc : rebond
                         direction_normale = direction / distance
