@@ -10,6 +10,8 @@ from assets.classes import Balle
 from assets.classes import Partie
 from assets.classes import MidiController
 from random import randint
+import random
+import math
 import mido
 
 #A faire :
