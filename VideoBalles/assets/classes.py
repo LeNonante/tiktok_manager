@@ -7,7 +7,7 @@ import random
 import math
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction, nb_particules):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -27,6 +27,9 @@ class Partie:
         self.frame = 0  # Compteur de frames
         self.fps = fps  # Frames par seconde
         self.total_frame = total_frame  # Nombre total de frames pour la vidéo
+
+        self.nb_particules=nb_particules
+        self.systeme_particules = SystemeParticules(self.nb_particules)
 
         # Charger le son de destruction
         self.son_destruction = None
@@ -109,8 +112,13 @@ class Partie:
         for arc in arcs_to_remove:
             if arc in self.liste_arcs:
                 self.jouer_son_destruction()  # Jouer le son de destruction
+                # Créer une explosion de particules
+                self.systeme_particules.creer_explosion_arc(arc)
                 self.liste_arcs.remove(arc)
-        
+
+        # Mettre à jour et dessiner les particules
+        self.systeme_particules.update()
+
         for arc in self.liste_arcs:
             arc.tourner()
             if self.rayon_premier_arc is not None:
@@ -119,6 +127,8 @@ class Partie:
             if arc.rayon <= self.limite_affichage_arc:
                 arc.draw(self.screen)
 
+        # NOUVEAU : Dessiner les particules par-dessus les arcs
+        self.systeme_particules.draw(self.screen)
 
         self.frame += 1
         #Affichage des scores
@@ -429,3 +439,113 @@ class MidiController:
         self.stop_all_notes()
         self.midi_out.close()
         pygame.midi.quit()
+
+
+class Particule:
+    def __init__(self, x, y, vx, vy, couleur, taille, duree_vie):
+        self.position = np.array([x, y]).astype(float)
+        self.vitesse = np.array([vx, vy]).astype(float)
+        self.couleur = couleur
+        self.taille_initiale = taille
+        self.taille = taille
+        self.duree_vie_max = duree_vie
+        self.duree_vie = duree_vie
+        self.alpha = 255
+        
+    def update(self):
+        """Met à jour la position et les propriétés de la particule"""
+        # Mise à jour de la position
+        self.position += self.vitesse
+        
+        # Gravité légère
+        self.vitesse[1] += 0.1
+        
+        # Friction
+        self.vitesse *= 0.98
+        
+        # Diminution de la durée de vie
+        self.duree_vie -= 1
+        
+        # Calcul de l'alpha et de la taille en fonction de la durée de vie restante
+        ratio_vie = max(0, self.duree_vie / self.duree_vie_max)
+        self.alpha = int(255 * ratio_vie)
+        self.taille = self.taille_initiale * ratio_vie
+        
+        return self.duree_vie > 0
+    
+    def draw(self, surface):
+        """Dessine la particule avec transparence"""
+        if self.taille > 0.5:
+            # Créer une surface temporaire pour la transparence
+            temp_surface = pygame.Surface((int(self.taille * 2), int(self.taille * 2)), pygame.SRCALPHA)
+            couleur_avec_alpha = (*self.couleur[:3], self.alpha)
+            pygame.draw.circle(temp_surface, couleur_avec_alpha, (int(self.taille), int(self.taille)), int(self.taille))
+            surface.blit(temp_surface, (self.position[0] - self.taille, self.position[1] - self.taille))
+
+class SystemeParticules:
+    def __init__(self, nb_particules):
+        self.particules = []
+        self.nb_particules = nb_particules
+
+    def creer_explosion_arc(self, arc):
+        """Crée une explosion de particules le long de l'arc détruit"""
+        centre = arc.centre
+        rayon = arc.rayon
+        angle_debut_rad = np.deg2rad(arc.angle_debut)
+        angle_fin_rad = np.deg2rad(arc.angle_fin)
+        
+        # Calculer l'étendue angulaire de l'arc
+        if arc.angle_fin > arc.angle_debut:
+            etendue_angulaire = arc.angle_fin - arc.angle_debut
+        else:
+            etendue_angulaire = (360 - arc.angle_debut) + arc.angle_fin
+        
+        # Générer des particules le long de l'arc
+        for i in range(self.nb_particules):
+            # Position aléatoire le long de l'arc
+            if arc.angle_fin > arc.angle_debut:
+                angle = random.uniform(arc.angle_debut, arc.angle_fin)
+            else:
+                # Cas où l'arc traverse 0°
+                if random.random() < 0.5:
+                    angle = random.uniform(arc.angle_debut, 360)
+                else:
+                    angle = random.uniform(0, arc.angle_fin)
+            
+            angle_rad = np.deg2rad(angle)
+            
+            # Position de la particule sur l'arc
+            x = centre[0] + rayon * np.cos(angle_rad)
+            y = centre[1] + rayon * np.sin(angle_rad)
+            
+            # Vitesse initiale : vers l'extérieur avec un peu d'aléatoire
+            vitesse_radiale = random.uniform(2, 6)
+            angle_vitesse = angle_rad + random.uniform(-0.3, 0.3)  # Petit angle aléatoire
+            
+            vx = vitesse_radiale * np.cos(angle_vitesse)
+            vy = vitesse_radiale * np.sin(angle_vitesse)
+            
+            # Propriétés de la particule
+            couleur = arc.couleur
+            taille = random.uniform(1, 3)
+            duree_vie = random.randint(30, 80)  # frames
+            
+            particule = Particule(x, y, vx, vy, couleur, taille, duree_vie)
+            self.particules.append(particule)
+    
+    def update(self):
+        """Met à jour toutes les particules et supprime celles qui sont mortes"""
+        particules_vivantes = []
+        for particule in self.particules:
+            if particule.update():
+                particules_vivantes.append(particule)
+        self.particules = particules_vivantes
+    
+    def draw(self, surface):
+        """Dessine toutes les particules"""
+        for particule in self.particules:
+            particule.draw(surface)
+    
+    def get_nombre_particules(self):
+        """Retourne le nombre de particules actives"""
+        return len(self.particules)

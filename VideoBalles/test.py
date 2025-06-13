@@ -20,6 +20,13 @@ import mido
 # - Ajouter des images
 pygame.mixer.init()
 
+
+#PARTIE AJUSTABLE POUR LES PARTICULES ---------------------------------------------------------------------------------------
+
+nb_particules=170
+
+#PARTIE AJUSTABLE POUR LA PARTIE ---------------------------------------------------------------------------------------
+
 total_frame=60*61
 vitesse_max = 10.0
 fichier_midi = "VideoBalles/assets/midi/Eiffel_65_I_m_Blue.mid" #chemin vide si pas de musique
@@ -56,17 +63,14 @@ if fichier_midi!="":
     midi_controller = MidiController(fichier_midi)  
 
 #Création de la fenêtre
-partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction)
+partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction, nb_particules)
 
 
 
 
-#PARTIE AJUSTABLE ---------------------------------------------------------------------------------------
+#PARTIE AJUSTABLE POUR LES BALLES ---------------------------------------------------------------------------------------
 
 #Ajout des balles
-
-
-
 couleur_balle = (255, 0, 0)  # Couleur des balles
 rayon_balle = 20  # Taille des balles
 couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
@@ -108,7 +112,7 @@ y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (
 
 partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text,  image, couleur_rectangle_score, couleur_texte_score) #
 
-
+#PARTIE AJUSTABLE POUR LES ARCS ---------------------------------------------------------------------------------------
 
 for i in range (1000) :
     angle2 = randint(0, 360)
