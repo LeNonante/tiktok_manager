@@ -2,6 +2,7 @@ import pygame
 import sys
 import os
 import numpy as np
+import pandas as pd
 import pygame.midi
 import pygame.mixer
 from collections import deque
@@ -68,54 +69,40 @@ if fichier_midi!="":
 #Création de la fenêtre
 partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction, nb_particules)
 
+#CHARGEMENT DES BALLES
 
-
-
-#PARTIE AJUSTABLE POUR LES BALLES ---------------------------------------------------------------------------------------
-
+df = pd.read_excel("VideoBalles/assets/ListeBalles.xlsx", engine="openpyxl")
+df = df[df['Afficher'] == True]  # Garder seulement les lignes où 'Afficher' est True
+df = df.reset_index(drop=True) #refaire les indexes des lignes
+df["Image"] = df["Image"].fillna("")  # Remplacer les NaN par des chaînes vides
+df["Image"] = df["Image"].apply(lambda x: "VideoBalles/assets/images/" + str(x) if x!="" else x)  # Ajouter le début des chemins d'acces des images
+df["Rayon Balle"] = df["Rayon Balle"].astype(int)
+df["Taille Trainee"] = df["Taille Trainee"].astype(int)
 #Ajout des balles
-couleur_balle = (255, 0, 0)  # Couleur des balles
-rayon_balle = 20  # Taille des balles
-couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
-taille_contour = 2  # Taille du contour des balles
-taille_trainee = 10  # Taille de la traînée des balles
-text = "ALL"
-afficher_text = False  # Afficher le texte sur les balles
-taille_font = 25
-couleur_texte = (255, 255, 255)  # Couleur du texte
-image="VideoBalles/assets/images/allemagne.png"  # Chemin de l'image de la balle // "" si pas d'image
-couleur_rectangle_score = (185, 0, 0)
-couleur_texte_score = (255, 255, 255)
-acceleration=0.3
-# Position aléatoire de la balle dans un carré centré dans le premier arc
-#retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
-# On ajoute 1 pour éviter que la balle ne soit collée au bord
-x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
-y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 
-partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration) #
+for i in range(len(df)):
+    couleur_balle = eval(df.loc[i, "Couleur Balle"])  # Couleur des balles
+    rayon_balle = df.loc[i, "Rayon Balle"]  # Taille des balles
+    couleur_interieur_balle = eval(df.loc[i, "Couleur Interieur Balle"])  # Couleur intérieure des balles
+    taille_contour = int(df.loc[i, "Taille Contour"])  # Taille du contour des balles
+    taille_trainee = df.loc[i, "Taille Trainee"]  # Taille de la traînée des balles
+    taille_trainee = int(taille_trainee)
+    text = df.loc[i, "Texte"]  # Texte à afficher sur les balles
+    afficher_text = df.loc[i, "Afficher Texte"]  # Afficher le texte sur les balles
+    taille_font = int(df.loc[i, "Taille Font"])  # Taille de la police du texte
+    couleur_texte = eval(df.loc[i, "Couleur Texte"])  # Couleur du texte
+    image= df.loc[i, "Image"]  # Chemin de l'image de la balle
+    couleur_rectangle_score = eval(df.loc[i, "Couleur Rectangle Score"])  # Couleur du rectangle de score
+    couleur_texte_score = eval(df.loc[i, "Couleur Texte Score"])  # Couleur du texte de score
+    acceleration= float(df.loc[i, "Acceleration"])  # Accélération de la balle
 
-couleur_balle = (0, 0, 255)  # Couleur des balles
-rayon_balle = 20  # Taille des balles
-couleur_interieur_balle = (0, 0, 0)  # Couleur intérieure des balles
-taille_contour = 2  # Taille du contour des balles
-taille_trainee = 10  # Taille de la traînée des balles
-couleur_rectangle_score = (0, 0, 185)
-couleur_texte_score = (255, 255, 255)
-acceleration=0.3
-# Position aléatoire de la balle dans un carré centré dans le premier arc
-#retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
-# On ajoute 1 pour éviter que la balle ne soit collée au bord
-text = "FRA"
-afficher_text = False  # Afficher le texte sur les balles
-taille_font = 25
-couleur_texte = (255, 255, 255)  # Couleur du texte
-image="VideoBalles/assets/images/1.jpg"  # Chemin de l'image de la balle // "" si pas d'image
-x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
-y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
+    # Position aléatoire de la balle dans un carré centré dans le premier arc
+    #retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
+    # On ajoute 1 pour éviter que la balle ne soit collée au bord
+    x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
+    y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 
-
-partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text,  image, couleur_rectangle_score, couleur_texte_score, acceleration) #
+    partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration) #
 
 #PARTIE AJUSTABLE POUR LES ARCS ---------------------------------------------------------------------------------------
 for i in range (1000) :
