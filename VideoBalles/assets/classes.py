@@ -31,6 +31,8 @@ class Partie:
         self.nb_particules=nb_particules
         self.systeme_particules = SystemeParticules(self.nb_particules)
 
+        self.liste_frames_rebonds=[]
+
         # Charger le son de destruction
         self.son_destruction = None
         if fichier_son_destruction and fichier_son_destruction != "":
@@ -47,7 +49,7 @@ class Partie:
 
 
 
-    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
+    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration):
         """
         Ajoute une nouvelle balle à la liste des balles.
         Paramètres :
@@ -58,7 +60,7 @@ class Partie:
         Retour :
             None
         """
-        balle = Balle(x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score)
+        balle = Balle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration)
         self.liste_balles.append(balle)
     
     def addArc(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc, effet_hypnotique):
@@ -91,6 +93,7 @@ class Partie:
         # Stocker les arcs à supprimer
         arcs_to_remove = []
 
+        nombre_rebond=0 #Permet de palier au fait que le bolleen est reset a chaque balle (on perd l'info du rebon de la balle 1 si la balle  2 le remplace par True)
         for i in range(len(self.liste_balles)):
             b=self.liste_balles[i]
             if i==0 :
@@ -99,12 +102,16 @@ class Partie:
                 if arc_touche is not None:
                     b.add_Point()
                     arcs_to_remove.append(arc_touche)
+                elif rebond :
+                    nombre_rebond+=1
             else:
                 rebond, arc_touche = b.update_position(centre, self.vitesse_max_balle, self.liste_arcs)
                 # Si un arc a été touché, le marquer pour suppression
                 if arc_touche is not None:
                     b.add_Point()
                     arcs_to_remove.append(arc_touche)
+                elif rebond :
+                    nombre_rebond+=1
             print(f"Balle {i+1} - Position: {b.position}, Vitesse: {b.vitesse}, Score: {b.score}")
             b.draw(self.screen)
 
@@ -156,6 +163,11 @@ class Partie:
         time_surface = font_score.render(f"Time left: { (self.total_frame - self.frame) / self.fps:.0f}", True, (0, 0, 0))
         time_rect = time_surface.get_rect(center=(self.width / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score + hauteur / 2))
         self.screen.blit(time_surface, time_rect)
+        
+        rebond = nombre_rebond>0
+
+        if rebond :
+            self.addRebondToFramesList()
 
         return rebond
 
@@ -190,9 +202,17 @@ class Partie:
         screenshot.blit(self.screen, (0, 0))
         pygame.image.save(screenshot, f"VideoBalles/assets/screen/capture_ecran_{frame:04d}.png")
 
+    def addRebondToFramesList (self):
+        """
+        Ajoute la frame actuelle dans la liste des frames qui ont des rebonds
+        """
+        self.liste_frames_rebonds.append(self.frame)
+
+    def getListeFramesRebonds(self):
+        return self.liste_frames_rebonds
 
 class Balle:
-    def __init__(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score):
+    def __init__(self, partie, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration):
         self.score= 0
         self.position=np.array([x+10,y]).astype(float)
         self.vitesse=np.array([0,0]).astype(float)
@@ -211,7 +231,8 @@ class Balle:
         self.image = pygame.image.load(image).convert_alpha() if image!="" else None  # Charger l'image de la balle
         self.couleur_rectangle_score = couleur_rectangle_score  # Couleur du rectangle de score
         self.couleur_texte_score = couleur_texte_score  # Couleur du texte du score
-
+        self.acceleration=acceleration
+        self.partie=partie
     def draw(self, surface):
         """
         Dessine la balle sur la surface donnée.
@@ -283,7 +304,7 @@ class Balle:
 
     def update_vitesse(self, vitesse_max_balle):
         # Accelerer vers le bas
-        self.vitesse[1] += 0.3  # Ajouter une accélération vers le bas
+        self.vitesse[1] += self.acceleration  # Ajouter une accélération vers le bas
         speed = np.linalg.norm(self.vitesse)
         if speed > vitesse_max_balle:
             self.vitesse = (self.vitesse / speed) * vitesse_max_balle
@@ -554,3 +575,184 @@ class SystemeParticules:
     def get_nombre_particules(self):
         """Retourne le nombre de particules actives"""
         return len(self.particules)
+    
+
+
+
+import mido
+import numpy as np
+from scipy.io import wavfile
+import pygame
+import pygame.midi
+import time
+import threading
+import queue
+
+class MidiToAudioGenerator:
+    def __init__(self, midi_file, fps=60, sample_rate=44100):
+        """
+        Initialise le générateur audio MIDI
+        
+        Args:
+            midi_file (str): Chemin vers le fichier MIDI
+            fps (int): Frames par seconde de la vidéo
+            sample_rate (int): Taux d'échantillonnage audio
+        """
+        self.midi_file = mido.MidiFile(midi_file)
+        self.fps = fps
+        self.sample_rate = sample_rate
+        self.frame_duration = 1.0 / fps  # Durée d'une frame en secondes
+        self.notes = []
+        self._extract_notes()
+        
+        # Initialiser pygame MIDI
+        pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=512)
+        pygame.midi.init()
+        
+    def _extract_notes(self):
+        """Extrait les notes du fichier MIDI"""
+        for track in self.midi_file.tracks:
+            for msg in track:
+                if msg.type == 'note_on' and msg.velocity > 0:
+                    self.notes.append({
+                        'note': msg.note,
+                        'velocity': msg.velocity,
+                        'channel': msg.channel
+                    })
+    
+    def generate_audio_from_frames(self, frame_list, output_file="output_audio.wav", note_duration=0.5):
+        """
+        Génère un fichier audio en jouant les notes aux frames spécifiées
+        
+        Args:
+            frame_list (list): Liste des numéros de frames où jouer les notes
+            output_file (str): Nom du fichier audio de sortie
+            note_duration (float): Durée de chaque note en secondes
+        """
+        if not frame_list:
+            print("Aucune frame spécifiée")
+            return
+        
+        # Calculer la durée totale nécessaire
+        max_frame = max(frame_list)
+        total_duration = (max_frame + 1) * self.frame_duration + note_duration
+        total_samples = int(total_duration * self.sample_rate)
+        
+        # Créer un tableau audio vide (stéréo)
+        audio_data = np.zeros((total_samples, 2), dtype=np.float32)
+        
+        print(f"Génération audio pour {len(frame_list)} notes...")
+        
+        # Générer chaque note
+        for i, frame_num in enumerate(frame_list):
+            if i >= len(self.notes):
+                break
+                
+            note_info = self.notes[i]
+            
+            # Calculer le temps de début de la note
+            start_time = frame_num * self.frame_duration
+            start_sample = int(start_time * self.sample_rate)
+            
+            # Générer la note
+            note_samples = self._generate_note_samples(
+                note_info['note'], 
+                note_info['velocity'], 
+                note_duration
+            )
+            
+            # Ajouter la note au tableau audio
+            end_sample = min(start_sample + len(note_samples), total_samples)
+            if start_sample < total_samples:
+                audio_data[start_sample:end_sample] += note_samples[:end_sample-start_sample]
+        
+        # Normaliser l'audio pour éviter la saturation
+        max_val = np.max(np.abs(audio_data))
+        if max_val > 0:
+            audio_data = audio_data / max_val * 0.8
+        
+        # Convertir en format 16-bit pour l'enregistrement
+        audio_16bit = (audio_data * 32767).astype(np.int16)
+        
+        # Enregistrer le fichier audio
+        wavfile.write(output_file, self.sample_rate, audio_16bit)
+        print(f"Audio généré : {output_file}")
+    
+    def _generate_note_samples(self, note_number, velocity, duration):
+        """
+        Génère les échantillons audio pour une note donnée
+        
+        Args:
+            note_number (int): Numéro de la note MIDI (0-127)
+            velocity (int): Vélocité de la note (0-127)
+            duration (float): Durée de la note en secondes
+        
+        Returns:
+            np.array: Échantillons audio stéréo
+        """
+        # Convertir le numéro de note MIDI en fréquence
+        frequency = 440.0 * (2 ** ((note_number - 69) / 12.0))
+        
+        # Générer les échantillons
+        num_samples = int(duration * self.sample_rate)
+        t = np.linspace(0, duration, num_samples)
+        
+        # Créer une forme d'onde simple (onde sinusoïdale avec harmoniques)
+        wave = np.sin(2 * np.pi * frequency * t)
+        wave += 0.3 * np.sin(2 * np.pi * frequency * 2 * t)  # Harmonique
+        wave += 0.1 * np.sin(2 * np.pi * frequency * 3 * t)  # Harmonique
+        
+        # Appliquer l'enveloppe ADSR simple
+        envelope = self._create_envelope(num_samples, velocity)
+        wave *= envelope
+        
+        # Créer un signal stéréo
+        stereo_wave = np.column_stack((wave, wave))
+        
+        return stereo_wave
+    
+    def _create_envelope(self, num_samples, velocity):
+        """
+        Crée une enveloppe ADSR simple pour la note
+        
+        Args:
+            num_samples (int): Nombre d'échantillons
+            velocity (int): Vélocité de la note
+        
+        Returns:
+            np.array: Enveloppe d'amplitude
+        """
+        # Normaliser la vélocité
+        amplitude = velocity / 127.0
+        
+        # Paramètres d'enveloppe
+        attack_samples = int(0.01 * self.sample_rate)  # 10ms d'attaque
+        decay_samples = int(0.05 * self.sample_rate)   # 50ms de decay
+        sustain_level = 0.7 * amplitude
+        release_samples = int(0.2 * self.sample_rate)  # 200ms de release
+        
+        envelope = np.ones(num_samples)
+        
+        # Attaque
+        if attack_samples > 0:
+            envelope[:attack_samples] = np.linspace(0, amplitude, attack_samples)
+        
+        # Decay
+        if decay_samples > 0 and attack_samples + decay_samples < num_samples:
+            envelope[attack_samples:attack_samples + decay_samples] = np.linspace(
+                amplitude, sustain_level, decay_samples
+            )
+        
+        # Sustain
+        sustain_start = attack_samples + decay_samples
+        sustain_end = max(sustain_start, num_samples - release_samples)
+        if sustain_start < sustain_end:
+            envelope[sustain_start:sustain_end] = sustain_level
+        
+        # Release
+        if release_samples > 0 and sustain_end < num_samples:
+            envelope[sustain_end:] = np.linspace(
+                sustain_level, 0, num_samples - sustain_end
+            )
+        
+        return envelope

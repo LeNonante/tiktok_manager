@@ -5,16 +5,18 @@ import numpy as np
 import pygame.midi
 import pygame.mixer
 from collections import deque
-from assets.image_to_video import create_video_from_images
+from assets.image_to_video import combine_video_audio, create_video_from_images, boucler_midi
 from assets.classes import Balle
 from assets.classes import Partie
 from assets.classes import MidiController
+from assets.classes import MidiToAudioGenerator
 from random import randint
 import random
 import math
 import mido
 
 #A faire :
+#    - Ajouter les son de destructions 
 
 pygame.mixer.init()
 
@@ -57,8 +59,10 @@ height = screen_height
 
 centre=np.array([width//2,height//2]).astype(float) #Permet d'avoir la position du centre de l'écran
 
-#Chargement de la musique si le fichier existe
+#boucler et Charger de la musique si le fichier existe
 if fichier_midi!="":
+    boucler_midi(fichier_midi, fichier_midi[:-4] + "_looped.mid")
+    fichier_midi = fichier_midi[:-4] + "_looped.mid"
     midi_controller = MidiController(fichier_midi)  
 
 #Création de la fenêtre
@@ -82,14 +86,14 @@ couleur_texte = (255, 255, 255)  # Couleur du texte
 image="VideoBalles/assets/images/allemagne.png"  # Chemin de l'image de la balle // "" si pas d'image
 couleur_rectangle_score = (185, 0, 0)
 couleur_texte_score = (255, 255, 255)
-
+acceleration=0.3
 # Position aléatoire de la balle dans un carré centré dans le premier arc
 #retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
 # On ajoute 1 pour éviter que la balle ne soit collée au bord
 x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 
-partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score) #
+partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration) #
 
 couleur_balle = (0, 0, 255)  # Couleur des balles
 rayon_balle = 20  # Taille des balles
@@ -98,6 +102,7 @@ taille_contour = 2  # Taille du contour des balles
 taille_trainee = 10  # Taille de la traînée des balles
 couleur_rectangle_score = (0, 0, 185)
 couleur_texte_score = (255, 255, 255)
+acceleration=0.3
 # Position aléatoire de la balle dans un carré centré dans le premier arc
 #retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
 # On ajoute 1 pour éviter que la balle ne soit collée au bord
@@ -109,7 +114,8 @@ image="VideoBalles/assets/images/1.jpg"  # Chemin de l'image de la balle // "" s
 x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 
-partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text,  image, couleur_rectangle_score, couleur_texte_score) #
+
+partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text,  image, couleur_rectangle_score, couleur_texte_score, acceleration) #
 
 #PARTIE AJUSTABLE POUR LES ARCS ---------------------------------------------------------------------------------------
 for i in range (1000) :
@@ -138,6 +144,7 @@ for frame in range(total_frame):
             sys.exit()
 
     isRebond=partie.setPartie(centre)
+
     
     partie.Afficher()
 
@@ -147,10 +154,31 @@ for frame in range(total_frame):
 
     screen = partie.makeScreenshot(frame)
 
+
 midi_controller.cleanup()
 pygame.quit()
+
+frames_rebond=partie.getListeFramesRebonds() #On recupere les frames avec des rebonds
+print(frames_rebond)
+print("Génération de l'audio synchronisé...")
+if fichier_midi != "" and frames_rebond:
+    audio_generator = MidiToAudioGenerator(fichier_midi, fps=60)
+    audio_generator.generate_audio_from_frames(
+        frames_rebond,
+        "VideoBalles/assets/videos/audio_sync.wav",
+        note_duration=0.5
+    )
+    print(f"Audio généré avec {len(frames_rebond)} notes aux frames : {frames_rebond}")
+else:
+    print("Aucun fichier MIDI ou aucun rebond détecté")
+
+
+
 print("Création de la vidéo : ")
 create_video_from_images("VideoBalles/assets/screen", "VideoBalles/assets/videos/resultat.mp4")
+
+print("Ajout de l'audio : ")
+combine_video_audio("VideoBalles/assets/videos/resultat.mp4", "VideoBalles/assets/videos/audio_sync.wav", "VideoBalles/assets/videos/resultat_final.mp4")
 
 sys.exit()
 
