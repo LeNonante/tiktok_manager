@@ -71,7 +71,7 @@ partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_m
 
 #CHARGEMENT DES BALLES
 
-df = pd.read_excel("VideoBalles/assets/ListeBalles.xlsx", engine="openpyxl")
+df = pd.read_excel("VideoBalles/ListeBalles.xlsx", engine="openpyxl")
 df = df[df['Afficher'] == True]  # Garder seulement les lignes où 'Afficher' est True
 df = df.reset_index(drop=True) #refaire les indexes des lignes
 df["Image"] = df["Image"].fillna("")  # Remplacer les NaN par des chaînes vides
