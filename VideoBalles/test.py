@@ -79,7 +79,7 @@ text = "ALL"
 afficher_text = False  # Afficher le texte sur les balles
 taille_font = 25
 couleur_texte = (255, 255, 255)  # Couleur du texte
-image="VideoBalles/assets/images/allemagne.png"  # Chemin de l'image de la balle
+image="VideoBalles/assets/images/allemagne.png"  # Chemin de l'image de la balle // "" si pas d'image
 couleur_rectangle_score = (185, 0, 0)
 couleur_texte_score = (255, 255, 255)
 
@@ -105,7 +105,7 @@ text = "FRA"
 afficher_text = False  # Afficher le texte sur les balles
 taille_font = 25
 couleur_texte = (255, 255, 255)  # Couleur du texte
-image="VideoBalles/assets/images/1.jpg"  # Chemin de l'image de la balle
+image="VideoBalles/assets/images/1.jpg"  # Chemin de l'image de la balle // "" si pas d'image
 x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 

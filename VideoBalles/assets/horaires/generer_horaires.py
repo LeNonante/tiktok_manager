@@ -1,5 +1,8 @@
 from random import randint
-
+"""
+Genere des heures aléatoires et les enregistre dans un fichier texte. le but est d'avoir 3 heures uniques par jour pour un total de 3000 heures.
+ensuite ces heures sont utilisées par N8N pour poster des vidéos aux horaires aléatoires, 3x par jour.
+"""
 def generer_heures():
     heures = []
     for _ in range(3):  # Générer 3 heures aléatoires
