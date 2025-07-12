@@ -30,9 +30,9 @@ nb_particules=170
 
 total_frame= 60*61 #60*61
 vitesse_max = 8.0
-fichier_midi = "VideoBalles/assets/midi/Gravity Falls - Made Me Realize.mid" #chemin vide si pas de musique
+fichier_midi = "VideoBalles/assets/midi/SansSon.mid" #chemin vide si pas de musique
 fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas de son
-titre = "Qui va gagner la finale|de la Coupe du Monde|des clubs ?"  #Separer avec | pour faire plusieurs lignes
+titre = "Who will win the|Euro Football match?"  #Separer avec | pour faire plusieurs lignes
                                                                     #Mettre "" si pas de titre
 couleur_font_titre = (0, 0, 0)  # Couleur du texte du titre
 couleur_fond_titre = (255, 255, 255)  # Couleur de fond du titre
@@ -90,6 +90,7 @@ df["Rayon Balle"] = df["Rayon Balle"].astype(int)
 df["Taille Trainee"] = df["Taille Trainee"].astype(int)
 #Ajout des balles
 
+nomsBalles="__" #Utilisé dans le nom de la vidéo Exporté
 for i in range(len(df)):
     couleur_balle = eval(df.loc[i, "Couleur Balle"])  # Couleur des balles
     rayon_balle = df.loc[i, "Rayon Balle"]  # Taille des balles
@@ -98,6 +99,7 @@ for i in range(len(df)):
     taille_trainee = df.loc[i, "Taille Trainee"]  # Taille de la traînée des balles
     taille_trainee = int(taille_trainee)
     text = df.loc[i, "Texte"]  # Texte à afficher sur les balles
+    nomsBalles += text + "_"  # Ajouter le nom de la balle au nom de la vidéo
     afficher_text = df.loc[i, "Afficher Texte"]  # Afficher le texte sur les balles
     taille_font = int(df.loc[i, "Taille Font"])  # Taille de la police du texte
     couleur_texte = eval(df.loc[i, "Couleur Texte"])  # Couleur du texte
@@ -105,6 +107,7 @@ for i in range(len(df)):
     couleur_rectangle_score = eval(df.loc[i, "Couleur Rectangle Score"])  # Couleur du rectangle de score
     couleur_texte_score = eval(df.loc[i, "Couleur Texte Score"])  # Couleur du texte de score
     acceleration= float(df.loc[i, "Acceleration"])  # Accélération de la balle
+    taille_font_score= int(df.loc[i, "Taille Font Score"])  # Taille de la police du texte de score
 
     # Position aléatoire de la balle dans un carré centré dans le premier arc
     #retire / rajoute le rayon de la balle pour éviter que la balle ne soit à cheval sur l'arc
@@ -112,12 +115,13 @@ for i in range(len(df)):
     x = randint((width // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (width // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
     y = randint((height // 2) - (taille_premier_arc_debut // 2) + rayon_balle + 1, (height // 2) + (taille_premier_arc_debut // 2) - rayon_balle - 1)
 
-    partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration) #
+    partie.addBalle(x, y, rayon_balle, couleur_balle, taille_trainee, couleur_interieur_balle, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration, taille_font_score) #
 
 #PARTIE AJUSTABLE POUR LES ARCS ---------------------------------------------------------------------------------------
+angleDepart=randint(-60, 150)  # Angle de départ aléatoire
 for i in range (1000) :
     #angle2 = randint(0, 360)
-    angle2 = (300 + i * 6) % 360
+    angle2 = (angleDepart + i * 6) % 360
     angle = (angle2 + 45) % 360
 
     effet_hypnotique=False
@@ -176,10 +180,16 @@ else:
 
 
 print("Création de la vidéo : ")
-create_video_from_images("VideoBalles/assets/screen", "VideoBalles/assets/videos/resultat.mp4")
+titre_simple = ''.join(c for c in titre if c.isalnum() or c.isspace())
+if fichier_midi !="VideoBalles/assets/midi/SansSon_looped.mid" :
+    create_video_from_images("VideoBalles/assets/screen", "VideoBalles/assets/videos/resultat.mp4")
 
-print("Ajout de l'audio : ")
-combine_video_audio("VideoBalles/assets/videos/resultat.mp4", "VideoBalles/assets/videos/audio_sync.wav", "VideoBalles/assets/videos/resultat_final.mp4")
+    print("Ajout de l'audio : ")
+    
+    combine_video_audio("VideoBalles/assets/videos/resultat.mp4", "VideoBalles/assets/videos/audio_sync.wav", "VideoBalles/assets/videos/"+titre_simple+nomsBalles+".mp4")
+
+else :
+    create_video_from_images("VideoBalles/assets/screen", "VideoBalles/assets/videos/"+titre_simple+nomsBalles+"_SansSon2.mp4")
 
 sys.exit()
 

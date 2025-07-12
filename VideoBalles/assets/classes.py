@@ -53,7 +53,7 @@ class Partie:
 
 
 
-    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration):
+    def addBalle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration, taille_font_score):
         """
         Ajoute une nouvelle balle à la liste des balles.
         Paramètres :
@@ -64,7 +64,7 @@ class Partie:
         Retour :
             None
         """
-        balle = Balle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration)
+        balle = Balle(self, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration, taille_font_score)
         self.liste_balles.append(balle)
     
     def addArc(self, centre, rayon, angle_debut, angle_fin, couleur, angle_rotation_arc, effet_hypnotique):
@@ -157,7 +157,7 @@ class Partie:
             score = b.score
 
             pygame.draw.rect(self.screen, couleur_rectangle, [x1, y1, largeur, hauteur])  # rectangle
-            font_score = pygame.font.Font(None, 30)
+            font_score = pygame.font.Font(None, b.taille_font_score)  # Taille de la police du texte de score
             score_surface = font_score.render(f"{text}: {score}", True, couleur_score)  # Utiliser la couleur du texte du score
             score_rect = score_surface.get_rect(center=(x1 + largeur/2, y1 + hauteur/2))
             self.screen.blit(score_surface, score_rect)
@@ -288,7 +288,7 @@ class Partie:
         return self.liste_frames_rebonds
 
 class Balle:
-    def __init__(self, partie, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration):
+    def __init__(self, partie, x, y, radius, color, trainee_length, couleur_interieur, taille_contour, text, taille_font, couleur_texte, afficher_text, image, couleur_rectangle_score, couleur_texte_score, acceleration, taille_font_score):
         self.score= 0
         self.position=np.array([x+10,y]).astype(float)
         self.vitesse=np.array([0,0]).astype(float)
@@ -307,9 +307,12 @@ class Balle:
         self.cheminImage= image  # Chemin de l'image de la balle
         self.image = pygame.image.load(image).convert_alpha() if image!="" else None  # Charger l'image de la balle
         self.couleur_rectangle_score = couleur_rectangle_score  # Couleur du rectangle de score
+        self.taille_font_score = taille_font_score
         self.couleur_texte_score = couleur_texte_score  # Couleur du texte du score
         self.acceleration=acceleration
         self.partie=partie
+
+
     def draw(self, surface):
         """
         Dessine la balle sur la surface donnée.
@@ -452,6 +455,7 @@ class Balle:
         self.position += self.vitesse
         
         return rebond, arc_touche
+    
 
 
 class ArcCercle:
