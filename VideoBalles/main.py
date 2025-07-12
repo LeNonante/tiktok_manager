@@ -18,8 +18,6 @@ import mido
 
 #A faire :
 #    - Ajouter les son de destructions 
-#   - Ajouter l'écran de fin
-#   - Ajouter le titre
 
 pygame.mixer.init()
 
@@ -30,7 +28,7 @@ nb_particules=170
 
 #PARTIE AJUSTABLE POUR LA PARTIE ---------------------------------------------------------------------------------------
 
-total_frame=60*61
+total_frame= 60*61 #60*61
 vitesse_max = 8.0
 fichier_midi = "VideoBalles/assets/midi/Gravity Falls - Made Me Realize.mid" #chemin vide si pas de musique
 fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas de son
@@ -136,6 +134,7 @@ for i in range (1000) :
 
 #Boucle des frames
 print("Création des images :")
+
 for frame in range(total_frame):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -153,6 +152,9 @@ for frame in range(total_frame):
 
     screen = partie.makeScreenshot(frame)
 
+for frame in range(60*3):  # Afficher l'écran final pendant 2 secondes
+    partie.AfficherEcranFinal()
+    screen = partie.makeScreenshot(total_frame + frame)
 
 midi_controller.cleanup()
 pygame.quit()

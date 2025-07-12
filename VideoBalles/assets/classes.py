@@ -207,6 +207,63 @@ class Partie:
         """
         pygame.display.flip()
 
+    def AfficherEcranFinal(self):
+        """
+        Affiche l'écran final avec le message de fin de partie.
+        """
+        #Affichage du gagnant
+        self.screen.fill(self.bg)
+        font = pygame.font.Font(None, 40)
+        score_max=0
+        winner=""
+        couleur_fond_titre = (255, 255, 255)  # Couleur de fond du titre
+        couleur_font = (255, 255, 255)  # Couleur du texte du titre
+        for i in self.liste_balles:
+            if i.score > score_max:
+                score_max = i.score
+                winner = i.text
+                couleur_fond_titre = i.couleur_rectangle_score
+                couleur_font=i.couleur_texte_score
+                chemin_image=i.cheminImage    
+
+
+        self.screen.fill(couleur_fond_titre)
+        if chemin_image == "":
+            text_surface = font.render(f"Winner : {winner}", True, couleur_font)
+            text_rect = text_surface.get_rect(center=(self.width / 2, 400))
+            self.screen.blit(text_surface, text_rect)
+        else:
+            text_surface = font.render(f"Winner : {winner}", True, couleur_font)
+            text_rect = text_surface.get_rect(center=(self.width / 2, 250))
+            self.screen.blit(text_surface, text_rect)
+
+            image = pygame.image.load(chemin_image).convert_alpha() if chemin_image!="" else None
+            # Redimensionner l'image de la balle
+            image_rond = pygame.transform.smoothscale(image, (250, 250))
+            # Créer un masque circulaire
+            mask = pygame.Surface((250, 250), pygame.SRCALPHA)
+            pygame.draw.circle(mask, (255, 255, 255, 255), (125, 125), 125)
+            # Appliquer le masque à l'image
+            image_rond.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+            image = image_rond
+
+            image_rect = image.get_rect(center=(self.width / 2, 450))
+            self.screen.blit(image, image_rect)
+
+        # Affichage du titre
+        if self.titre != "":
+            font_titre = pygame.font.Font(None, 50)
+
+            liste_lignes_titre = self.titre.split("|")  # Séparer le titre en lignes
+
+            y_titre = 100  # Position y du titre
+            for i, ligne in enumerate(liste_lignes_titre):
+                titre_surface = font_titre.render(ligne, True, self.couleur_font_titre)
+                titre_rect = titre_surface.get_rect(center=(self.width / 2, y_titre + 15 + i * 30))
+                self.screen.blit(titre_surface, titre_rect)
+
+        pygame.display.flip()
+
     def getScreen(self):
         """
         Retourne la surface d'affichage principale.
@@ -247,6 +304,7 @@ class Balle:
         self.taille_font = taille_font  # Taille de la police pour le texte
         self.couleur_texte = couleur_texte  # Couleur du texte
         self.afficher_text = afficher_text  # Indique si le texte doit être affiché
+        self.cheminImage= image  # Chemin de l'image de la balle
         self.image = pygame.image.load(image).convert_alpha() if image!="" else None  # Charger l'image de la balle
         self.couleur_rectangle_score = couleur_rectangle_score  # Couleur du rectangle de score
         self.couleur_texte_score = couleur_texte_score  # Couleur du texte du score
