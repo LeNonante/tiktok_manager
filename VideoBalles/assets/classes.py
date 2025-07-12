@@ -7,7 +7,7 @@ import random
 import math
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction, nb_particules):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction, nb_particules, titre, couleur_font_titre, couleur_fond_titre):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -27,6 +27,10 @@ class Partie:
         self.frame = 0  # Compteur de frames
         self.fps = fps  # Frames par seconde
         self.total_frame = total_frame  # Nombre total de frames pour la vidéo
+
+        self.titre=titre
+        self.couleur_font_titre = couleur_font_titre
+        self.coueleur_fond_titre = couleur_fond_titre
 
         self.nb_particules=nb_particules
         self.systeme_particules = SystemeParticules(self.nb_particules)
@@ -158,12 +162,27 @@ class Partie:
             score_rect = score_surface.get_rect(center=(x1 + largeur/2, y1 + hauteur/2))
             self.screen.blit(score_surface, score_rect)
 
+        # Affichage du temps restant
         largeur_rectangle_temps = self.largeur_rectangle_score+30
         pygame.draw.rect(self.screen, (255, 255, 255), [(self.width - largeur_rectangle_temps) / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score, largeur_rectangle_temps, hauteur])  # rectangle
         time_surface = font_score.render(f"Time left: { (self.total_frame - self.frame) / self.fps:.0f}", True, (0, 0, 0))
         time_rect = time_surface.get_rect(center=(self.width / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score + hauteur / 2))
         self.screen.blit(time_surface, time_rect)
         
+        # Affichage du titre
+        if self.titre != "":
+            font_titre = pygame.font.Font(None, 30)
+
+            liste_lignes_titre = self.titre.split("|")  # Séparer le titre en lignes
+
+            y_titre = self.y_rectangle_score - self.intervalle_x_rectangle_score - len(liste_lignes_titre) * 30  # Position y du titre
+
+            pygame.draw.rect(self.screen, self.coueleur_fond_titre, [(self.width-(self.width/1.7))/2, y_titre, self.width/1.7, len(liste_lignes_titre)*30])  # rectangle de fond du titre
+            for i, ligne in enumerate(liste_lignes_titre):
+                titre_surface = font_titre.render(ligne, True, self.couleur_font_titre)
+                titre_rect = titre_surface.get_rect(center=(self.width / 2, y_titre + 15 + i * 30))
+                self.screen.blit(titre_surface, titre_rect)
+
         rebond = nombre_rebond>0
 
         if rebond :

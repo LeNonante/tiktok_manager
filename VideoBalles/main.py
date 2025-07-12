@@ -18,6 +18,8 @@ import mido
 
 #A faire :
 #    - Ajouter les son de destructions 
+#   - Ajouter l'écran de fin
+#   - Ajouter le titre
 
 pygame.mixer.init()
 
@@ -30,8 +32,12 @@ nb_particules=170
 
 total_frame=60*61
 vitesse_max = 8.0
-fichier_midi = "VideoBalles/assets/midi/Eiffel_65_I_m_Blue.mid" #chemin vide si pas de musique
+fichier_midi = "VideoBalles/assets/midi/Gravity Falls - Made Me Realize.mid" #chemin vide si pas de musique
 fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas de son
+titre = "Qui va gagner la finale|de la Coupe du Monde|des clubs ?"  #Separer avec | pour faire plusieurs lignes
+                                                                    #Mettre "" si pas de titre
+couleur_font_titre = (0, 0, 0)  # Couleur du texte du titre
+couleur_fond_titre = (255, 255, 255)  # Couleur de fond du titre
 fond_fenetre = (0, 0, 0)  # Couleur de fond de la fenêtre
 rayon_min_arc = 100
 taille_premier_arc_debut=200
@@ -62,12 +68,18 @@ centre=np.array([width//2,height//2]).astype(float) #Permet d'avoir la position 
 
 #boucler et Charger de la musique si le fichier existe
 if fichier_midi!="":
+    if os.path.exists(fichier_midi[:-4] + "_looped.mid") :
+        reponse=str(input("Fichier MIDI déja utilisé, voulez vous le réutiliser ? (O/N)"))
+        reponse = reponse.strip().upper()
+        if reponse == "N": #Si l'utilisateur ne veut pas réutiliser le fichier
+            sys.exit() #Arrêter le programme
+
     boucler_midi(fichier_midi, fichier_midi[:-4] + "_looped.mid")
     fichier_midi = fichier_midi[:-4] + "_looped.mid"
     midi_controller = MidiController(fichier_midi)  
 
 #Création de la fenêtre
-partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction, nb_particules)
+partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction, nb_particules, titre, couleur_font_titre, couleur_fond_titre)
 
 #CHARGEMENT DES BALLES
 
