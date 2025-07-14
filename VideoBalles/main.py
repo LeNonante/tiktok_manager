@@ -30,10 +30,14 @@ nb_particules=170
 
 total_frame= 60*61 #60*61
 vitesse_max = 8.0
-fichier_midi = "VideoBalles/assets/midi/SansSon.mid" #chemin vide si pas de musique
+fichier_midi = "VideoBalles/assets/midi/Never-Gonna-Give-You-Up-3.mid" #chemin vide si pas de musique
 fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas de son
-titre = "Who will win the|Euro Football match?"  #Separer avec | pour faire plusieurs lignes
+titre = "Is Bro gay?"  #Separer avec | pour faire plusieurs lignes
                                                                     #Mettre "" si pas de titre
+TitreImage = "VideoBalles/assets/commentaires/img1.jpg"  #Chemin de l'image du titre
+                                                    #mettre "" si pas d'image de titre
+
+
 couleur_font_titre = (0, 0, 0)  # Couleur du texte du titre
 couleur_fond_titre = (255, 255, 255)  # Couleur de fond du titre
 fond_fenetre = (0, 0, 0)  # Couleur de fond de la fenêtre
@@ -45,7 +49,7 @@ limite_affichage_arc=532
 
 largeur_rectangle_score = 100  # Largeur du rectangle de score
 hauteur_rectangle_score = 50  # Hauteur du rectangle de score
-y_rectangle_score = 150  # Position Y du rectangle de score
+y_rectangle_score = 200  # Position Y du rectangle de score
 intervalle_x_rectangle_score = 10  # Espace entre les rectangles de score
 
 # Empêche  mise à l'échelle DPI automatique
@@ -77,7 +81,7 @@ if fichier_midi!="":
     midi_controller = MidiController(fichier_midi)  
 
 #Création de la fenêtre
-partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction, nb_particules, titre, couleur_font_titre, couleur_fond_titre)
+partie = Partie(width, height, fond_fenetre, vitesse_max, reduction_arc, rayon_min_arc, limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, 60, total_frame, fichier_son_destruction, nb_particules, titre, couleur_font_titre, couleur_fond_titre, TitreImage)
 
 #CHARGEMENT DES BALLES
 

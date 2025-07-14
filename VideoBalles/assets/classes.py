@@ -7,7 +7,7 @@ import random
 import math
 
 class Partie:
-    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction, nb_particules, titre, couleur_font_titre, couleur_fond_titre):
+    def __init__(self, width, height, bg, vitesse_max_balle, reduction_arc, limite_rayon_arc,limite_affichage_arc, largeur_rectangle_score, hauteur_rectangle_score, y_rectangle_score, intervalle_x_rectangle_score, fps, total_frame, fichier_son_destruction, nb_particules, titre, couleur_font_titre, couleur_fond_titre, titreImage):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
@@ -31,6 +31,7 @@ class Partie:
         self.titre=titre
         self.couleur_font_titre = couleur_font_titre
         self.coueleur_fond_titre = couleur_fond_titre
+        self.titreImage = titreImage  # Chemin de l'image du titre
 
         self.nb_particules=nb_particules
         self.systeme_particules = SystemeParticules(self.nb_particules)
@@ -169,19 +170,34 @@ class Partie:
         time_rect = time_surface.get_rect(center=(self.width / 2, y1+self.hauteur_rectangle_score + self.intervalle_x_rectangle_score + hauteur / 2))
         self.screen.blit(time_surface, time_rect)
         
+
+        # Affichage de l'image du titre
+        if self.titreImage != "":
+            image_titre = pygame.image.load(self.titreImage).convert_alpha()
+            # Enregistrer le ratio de l'image du titre
+            ratio_image_titre = image_titre.get_width() / image_titre.get_height()
+            largeur_image_titre = self.width / 1.7  # Largeur de l'image du titre
+            hauteur_image_titre = largeur_image_titre / ratio_image_titre  # Hauteur de l'image du titre
+            y_titre = self.y_rectangle_score - self.intervalle_x_rectangle_score - hauteur_image_titre/2  # Position y de l'image du titre
+            taille_image = (largeur_image_titre, hauteur_image_titre)
+            image_titre = pygame.transform.smoothscale(image_titre, taille_image)
+            image_rect = image_titre.get_rect(center=(self.width / 2, y_titre))
+            self.screen.blit(image_titre, image_rect)
+
+
         # Affichage du titre
-        if self.titre != "":
-            font_titre = pygame.font.Font(None, 30)
+        elif self.titre != "":
+                font_titre = pygame.font.Font(None, 30)
 
-            liste_lignes_titre = self.titre.split("|")  # Séparer le titre en lignes
+                liste_lignes_titre = self.titre.split("|")  # Séparer le titre en lignes
 
-            y_titre = self.y_rectangle_score - self.intervalle_x_rectangle_score - len(liste_lignes_titre) * 30  # Position y du titre
+                y_titre = self.y_rectangle_score - self.intervalle_x_rectangle_score - len(liste_lignes_titre) * 30  # Position y du titre
 
-            pygame.draw.rect(self.screen, self.coueleur_fond_titre, [(self.width-(self.width/1.7))/2, y_titre, self.width/1.7, len(liste_lignes_titre)*30])  # rectangle de fond du titre
-            for i, ligne in enumerate(liste_lignes_titre):
-                titre_surface = font_titre.render(ligne, True, self.couleur_font_titre)
-                titre_rect = titre_surface.get_rect(center=(self.width / 2, y_titre + 15 + i * 30))
-                self.screen.blit(titre_surface, titre_rect)
+                pygame.draw.rect(self.screen, self.coueleur_fond_titre, [(self.width-(self.width/1.7))/2, y_titre, self.width/1.7, len(liste_lignes_titre)*30])  # rectangle de fond du titre
+                for i, ligne in enumerate(liste_lignes_titre):
+                    titre_surface = font_titre.render(ligne, True, self.couleur_font_titre)
+                    titre_rect = titre_surface.get_rect(center=(self.width / 2, y_titre + 15 + i * 30))
+                    self.screen.blit(titre_surface, titre_rect)
 
         rebond = nombre_rebond>0
 
