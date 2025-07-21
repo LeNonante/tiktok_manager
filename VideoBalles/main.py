@@ -30,11 +30,11 @@ nb_particules=170
 
 total_frame= 60*61 #60*61
 vitesse_max = 8.0
-fichier_midi = "VideoBalles/assets/midi/Never-Gonna-Give-You-Up-3.mid" #chemin vide si pas de musique
+fichier_midi = "VideoBalles/assets/midi/Mii Channels.mid" #chemin vide si pas de musique
 fichier_son_destruction = "VideoBalles/assets/midi/test.mp3" #chemin vide si pas de son
-titre = "Is Bro gay?"  #Separer avec | pour faire plusieurs lignes
+titre = "Should I try to kiss my crush?"  #Separer avec | pour faire plusieurs lignes
                                                                     #Mettre "" si pas de titre
-TitreImage = "VideoBalles/assets/commentaires/img1.jpg"  #Chemin de l'image du titre
+TitreImage = "VideoBalles/assets/commentaires/img5.png"  #Chemin de l'image du titre
                                                     #mettre "" si pas d'image de titre
 
 
